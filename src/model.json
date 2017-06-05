@@ -1,5 +1,5 @@
 {
-   "background": [1, 0.38, 0.28, 1],
+   "background": [0.5, 0.5, 0.5, 1],
    "shader": "primitive",
    "camera": {
       "position": [0, 0, 0]
@@ -9,7 +9,7 @@
 
       "object0": {
          "position": [0, 0, 0],
-         "color": "white",
+         "color": [0, 0, 1, 1],
          "square": {
             "size": 100
          }

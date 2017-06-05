@@ -29,15 +29,14 @@ function updateCanvasSize() {
 }
 
 function render() {
-    const background = model.background;
-
     gl.viewport(0, 0, canvas.width, canvas.height);
-    gl.clearColor(...background);
+    gl.clearColor(...model.background);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     const vs = Shader.compile(gl, gl.VERTEX_SHADER, vsSrc);
     const fs = Shader.compile(gl, gl.FRAGMENT_SHADER, fsSrc);
     const program = ShaderProgram.compile(gl, vs, fs);
     gl.useProgram(program);
+    gl.uniform4fv(gl.getUniformLocation(program, 'color'), new Float32Array(model.objects.object0.color));
     gl.drawArrays(gl.POINTS, 0, 1);
 }
