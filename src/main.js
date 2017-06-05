@@ -1,3 +1,5 @@
+import './style.css';
+
 import Shader from './Shader.js';
 import ShaderProgram from './ShaderProgram.js';
 import model from './model.json';
