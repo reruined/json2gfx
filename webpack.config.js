@@ -10,4 +10,13 @@ module.exports = {
    watchOptions: {
 
    },
+   module: {
+      rules: [
+         {
+            test: /\.(vert|frag)$/,
+            loader: 'raw-loader',
+            exclude: /node_modules/
+         }
+      ]
+   }
 };
