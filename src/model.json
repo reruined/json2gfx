@@ -1,5 +1,5 @@
 {
-   "background": [0.5, 0.5, 0.5, 1],
+   "background": "white",
    "shader": "primitive",
    "camera": {
       "position": [0, 0, 0]

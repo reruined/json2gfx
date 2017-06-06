@@ -2,6 +2,7 @@ import './style.css';
 
 import Shader from './Shader.js';
 import ShaderProgram from './ShaderProgram.js';
+import Type from './Type.js';
 
 import model from './model.json';
 import vsSrc from './primitive.vert';
@@ -83,8 +84,44 @@ function render() {
 
     // prepare framebuffer
     gl.viewport(0, 0, canvas.width, canvas.height);
-    gl.clearColor(...model.background);
+    gl.clearColor(...toRGBA(model.background));
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     gl.drawArrays(gl.TRIANGLES, 0, TRIANGLE_POSITIONS.length / TRIANGLE_POSITION_SIZE);
+}
+
+function toRGBA(value) {
+    let color = null;
+
+    if(Type.isString(value)) {
+        color = namedColorToArray(value);
+    }
+
+    if(Type.isArray(value)) {
+        color = value;
+    }
+
+    color = color
+        .slice(0, 4)
+        .reduce((color, item, index) => {
+            color[index] = item;
+            return color;
+        }, [0, 0, 0, 1]);
+
+    return color;
+}
+
+function namedColorToArray(colorName) {
+    const element = document.createElement('div');
+    element.style.color = colorName;
+
+    document.body.appendChild(element);
+    const rawColor = getComputedStyle(element).color;
+    document.body.removeChild(element);
+
+    const color = rawColor.match(/\d+/g)
+        .map(item => parseInt(item))
+        .map(item => item / 255);
+
+    return color;
 }
