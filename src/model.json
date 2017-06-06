@@ -2,7 +2,7 @@
    "background": "white",
    "shader": "primitive",
    "camera": {
-      "position": [0, 0, 0]
+      "position": [0, 0, 1]
    },
 
    "objects": {
