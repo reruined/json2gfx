@@ -1,19 +1,15 @@
 {
-   "background": "white",
-   "shader": "primitive",
-   "camera": {
-      "position": [0, 0, 1]
-   },
+    "background": "white",
+    "shader": "primitive",
+    "camera": {
+        "position": [0, 0, 1]
+    },
 
-   "objects": {
+    "objects": {
 
-      "object0": {
-         "position": [0, 0, 0],
-         "color": [0, 0, 1, 1],
-         "triangle": {
-            "size": 100
-         }
-      }
+        "plane": {
+            "color": "gray"
+        }
 
-   }
+    }
 }
