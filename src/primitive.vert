@@ -1,4 +1,9 @@
+attribute vec4 position;
+attribute vec4 color;
+
+varying vec4 vColor;
+
 void main() {
-    gl_PointSize = 100.0;
-    gl_Position = vec4(0, 0, 0, 1);
+    vColor = color;
+    gl_Position = position;
 }

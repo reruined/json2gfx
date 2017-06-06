@@ -10,7 +10,7 @@
       "object0": {
          "position": [0, 0, 0],
          "color": [0, 0, 1, 1],
-         "square": {
+         "triangle": {
             "size": 100
          }
       }
