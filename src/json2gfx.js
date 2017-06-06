@@ -1,83 +1,151 @@
 import Shader from './Shader.js';
 import ShaderProgram from './ShaderProgram.js';
 import Type from './Type.js';
+import Tree from './Tree.js';
 import vsSrc from './primitive.vert';
 import fsSrc from './primitive.frag';
 
+const programs = {
+    primitive: {
+        vsSrc,
+        fsSrc
+    }
+};
+
 export default json2gfx;
-
-const TRIANGLE_POSITIONS = new Float32Array([
-    0.0, 0.25,
-    -0.25, -0.25,
-    0.25, -0.25
-]);
-const TRIANGLE_POSITION_SIZE = 2;
-
-const TRIANGLE_COLORS = new Float32Array([
-    1, 0, 0,
-    0, 1, 0,
-    0, 0, 1
-]);
-const TRIANGLE_COLOR_SIZE = 3;
 
 function json2gfx(canvas, model) {
     const gl = canvas.getContext('webgl');
-    render(gl, model);
-}
-
-function render(gl, model) {
-    // prepare position buffer
-    const positionBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, TRIANGLE_POSITIONS, gl.STATIC_DRAW);
-    gl.vertexAttribPointer(
-        0,
-        TRIANGLE_POSITION_SIZE,
-        gl.FLOAT,
-        false,
-        0,
-        0
-    );
-    gl.enableVertexAttribArray(0);
-    gl.bindBuffer(gl.ARRAY_BUFFER, null);
-
-    // prepare color buffer
-    const colorBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, TRIANGLE_COLORS, gl.STATIC_DRAW);
-    gl.vertexAttribPointer(
-        1,
-        TRIANGLE_COLOR_SIZE,
-        gl.FLOAT,
-        false,
-        0,
-        0
-    );
-    gl.enableVertexAttribArray(1);
-    gl.bindBuffer(gl.ARRAY_BUFFER, null);
-
-    // prepare shader
-    const vs = Shader.compile(gl, gl.VERTEX_SHADER, vsSrc);
-    const fs = Shader.compile(gl, gl.FRAGMENT_SHADER, fsSrc);
-    const program = ShaderProgram.compile(gl, vs, fs);
-    const worldLocation = gl.getUniformLocation(program, 'world');
-    const viewLocation = gl.getUniformLocation(program, 'view');
-    const projectionLocation = gl.getUniformLocation(program, 'projection');
-    gl.bindAttribLocation(program, 0, 'position');
-    gl.bindAttribLocation(program, 1, 'color');
-    gl.useProgram(program);
-
-    // push uniforms
-    gl.uniformMatrix4fv(worldLocation, false, createIdentityMatrix());
-    gl.uniformMatrix4fv(viewLocation, false, createViewMatrix(model.camera.position));
-    gl.uniformMatrix4fv(projectionLocation, false, createProjectionMatrix(1, Math.PI/4, 0.1, 100));
-
-    // prepare framebuffer
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     gl.clearColor(...toRGBA(model.background));
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    gl.drawArrays(gl.TRIANGLES, 0, TRIANGLE_POSITIONS.length / TRIANGLE_POSITION_SIZE);
+    const tree = Tree.fromObject(model);
+    renderNode(gl, tree);
+}
+
+function renderNode(gl, node) {
+    const mesh = getMesh(gl, node);
+    const program = getProgram(gl, node);
+    const camera = getCamera(gl, node);
+    const color = getColor(gl, node);
+
+    if(mesh) {
+        renderMesh(gl, mesh, program, camera, color);
+    }
+
+    (node.children || []).forEach(child => renderNode(gl, child));
+}
+
+function getColor(gl, node) {
+    return toRGBA(
+        Tree.findValueReverse(node, item => item.color) ||
+        "white"
+    );
+}
+
+function getTrianglePositions(scale) {
+    return new Float32Array([
+        0.0, 0.25,
+        -0.25, -0.25,
+        0.25, -0.25
+    ])
+        .map(item => item * scale);
+}
+
+function getGeometry(gl, node) {
+    console.assert(gl && node);
+
+    if(!node.geometry) {
+        return null;
+    }
+
+    return {
+        positions: {
+            itemSize: 2,
+            data: getTrianglePositions(node.geometry.size || 1)
+        },
+    };
+}
+
+function getMesh(gl, node) {
+    const geometry = getGeometry(gl, node);
+    if(!geometry) {
+        return null;
+    }
+
+    // prepare position buffer
+    const positionBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, geometry.positions.data, gl.STATIC_DRAW);
+    gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+    return {
+        layout: [
+            {
+                buffer: positionBuffer,
+                type: gl.FLOAT,
+                elementLength: geometry.positions.itemSize,
+                normalize: false,
+                stride: 0,
+                offset: 0
+            },
+        ],
+        vertexCount: geometry.positions.data.length / geometry.positions.itemSize
+    };
+}
+
+function getProgram(gl, node) {
+    const programName = Tree.findValueReverse(node, item => item.shader);
+    const programSrc = programs[programName];
+
+    // prepare shader
+    const vs = Shader.compile(gl, gl.VERTEX_SHADER, programSrc.vsSrc);
+    const fs = Shader.compile(gl, gl.FRAGMENT_SHADER, programSrc.fsSrc);
+    const program = ShaderProgram.compile(gl, vs, fs);
+    gl.bindAttribLocation(program, 0, 'position');
+    gl.bindAttribLocation(program, 1, 'color');
+    gl.useProgram(program);
+    return program;
+}
+
+function getCamera(gl, node) {
+    console.assert('root' in node);
+
+    const cameraName = Tree.findValueReverse(node, item => item.camera);
+    const camera = Tree.findByName(node.root, cameraName);
+
+    return {
+        view: createViewMatrix(camera.position),
+        projection: createProjectionMatrix(1, Math.PI/4, 0.1, 100)
+    };
+}
+
+function renderMesh(gl, mesh, program, camera, color) {
+    const worldLocation = gl.getUniformLocation(program, 'world');
+    const viewLocation = gl.getUniformLocation(program, 'view');
+    const projectionLocation = gl.getUniformLocation(program, 'projection');
+    const colorLocation = gl.getUniformLocation(program, 'color');
+    gl.uniformMatrix4fv(worldLocation, false, createIdentityMatrix());
+    gl.uniformMatrix4fv(viewLocation, false, camera.view);
+    gl.uniformMatrix4fv(projectionLocation, false, camera.projection);
+    gl.uniform4fv(colorLocation, new Float32Array(color));
+
+    mesh.layout.forEach((item, index) => {
+        gl.bindBuffer(gl.ARRAY_BUFFER, item.buffer);
+        gl.vertexAttribPointer(
+            index,
+            item.elementLength,
+            item.type,
+            item.normalize,
+            item.stride,
+            item.offset
+        );
+        gl.enableVertexAttribArray(index);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+    });
+
+    gl.drawArrays(gl.TRIANGLES, 0, mesh.vertexCount);
 }
 
 function createViewMatrix(position) {

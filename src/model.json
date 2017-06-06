@@ -1,15 +1,30 @@
 {
-    "background": "white",
+    "background": "beige",
     "shader": "primitive",
-    "camera": {
-        "position": [0, 0, 1]
-    },
+    "camera": "main-camera",
 
-    "objects": {
+    "children": [
 
-        "plane": {
-            "color": "gray"
+        {
+            "name": "main-camera",
+            "type": "camera",
+            "position": [0, 0, 1]
+        },
+
+        {
+            "color": "gray",
+            "geometry": {
+                "shape": "triangle"
+            }
+        },
+
+        {
+            "color": "blue",
+            "geometry": {
+                "shape": "triangle",
+                "size": 0.5
+            }
         }
 
-    }
+    ]
 }
