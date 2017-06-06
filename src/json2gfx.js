@@ -117,7 +117,7 @@ function getCamera(gl, node) {
 
     return {
         view: createViewMatrix(camera.position),
-        projection: createProjectionMatrix(1, Math.PI/4, 0.1, 100)
+        projection: createProjectionMatrix(gl.canvas.width / gl.canvas.height, Math.PI/4, 0.1, 100)
     };
 }
 
