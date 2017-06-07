@@ -144,10 +144,12 @@ function getCamera(gl, node) {
 
     const cameraName = Tree.findValueReverse(node, item => item.camera);
     const camera = Tree.findByName(node.root, cameraName);
+    const view = createInverseMatrix(Mat4.lookAt(camera.position, camera.lookAt, [0, 1, 0]));
 
+    //view: createViewMatrix(camera.position),
     return {
-        view: createViewMatrix(camera.position),
-        projection: createProjectionMatrix(gl.canvas.width / gl.canvas.height, Math.PI/4, 0.1, 100)
+        view,
+        projection: createProjectionMatrix(gl.canvas.width / gl.canvas.height, degToRad(camera.fov), 0.1, 100)
     };
 }
 

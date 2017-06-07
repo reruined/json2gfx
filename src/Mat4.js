@@ -1,4 +1,5 @@
 import Type from './Type.js';
+import Vec3 from './Vec3.js';
 import Vec4 from './Vec4.js';
 
 const ROWS = 4;
@@ -10,6 +11,20 @@ export default {
     fromEulerAngles,
     multiply,
     translation,
+    lookAt,
+}
+
+function lookAt(eye, target, up) {
+    const forward = Vec3.normalize(Vec3.sub(eye, target));
+    const right = Vec3.cross(up, forward);
+    up = Vec3.cross(forward, right);
+
+    return new Float32Array([
+        ...right, 0,
+        ...up, 0,
+        ...forward, 0,
+        ...eye, 1
+    ]);
 }
 
 function identity() {
