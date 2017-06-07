@@ -50,9 +50,22 @@ function getColor(gl, node) {
 
 function getTrianglePositions(scale) {
     return new Float32Array([
-        0.0, 0.25,
-        -0.25, -0.25,
-        0.25, -0.25
+        0.0, 0.5,
+        -0.5, -0.5,
+        0.5, -0.5
+    ])
+        .map(item => item * scale);
+}
+
+function getPlanePositions(scale) {
+    return new Float32Array([
+        -0.5, -0.5,
+        0.5, -0.5,
+        0.5, 0.5,
+
+        0.5, 0.5,
+        -0.5, 0.5,
+        -0.5, -0.5
     ])
         .map(item => item * scale);
 }
@@ -64,12 +77,25 @@ function getGeometry(gl, node) {
         return null;
     }
 
-    return {
-        positions: {
-            itemSize: 2,
-            data: getTrianglePositions(node.geometry.size || 1)
-        },
-    };
+    if(node.geometry.shape === 'triangle') {
+        return {
+            positions: {
+                itemSize: 2,
+                data: getTrianglePositions(node.geometry.size || 1)
+            },
+        };
+    }
+
+    if(node.geometry.shape === 'plane') {
+        return {
+            positions: {
+                itemSize: 2,
+                data: getPlanePositions(node.geometry.size || 1)
+            },
+        };
+    }
+
+    return null;
 }
 
 function getMesh(gl, node) {
