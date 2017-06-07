@@ -12,7 +12,7 @@
         },
 
         {
-            "color": "gray",
+            "color": "blue",
             "position": [0, 0.15, 0],
             "orientation": [0, 0, 0],
             "geometry": {
@@ -22,7 +22,7 @@
         },
 
         {
-            "color": "blue",
+            "color": "gray",
             "orientation": [-90, 0, 0],
             "geometry": {
                 "shape": "plane",
