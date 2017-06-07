@@ -14,22 +14,11 @@
         },
 
         {
-            "color": "blue",
-            "position": [0, 0.15, 0],
-            "orientation": [0, 0, 0],
-            "geometry": {
-                "shape": "triangle",
-                "size": 0.3
-            }
-        },
-
-        {
-            "color": "tomato",
-            "position": [0.05, 0.05, -0.1],
-            "orientation": [0, 0, 0],
-            "geometry": {
-                "shape": "triangle",
-                "size": 0.1
+            "position": [0, 0.1, 0.1],
+            "color": "white",
+            "light": {
+                "type": "point",
+                "intensity": 10
             }
         },
 
@@ -40,7 +29,16 @@
                 "shape": "plane",
                 "size": 1
             }
-        }
+        },
 
+        {
+            "color": "blue",
+            "position": [0, 0.15, 0],
+            "orientation": [0, 0, 0],
+            "geometry": {
+                "shape": "triangle",
+                "size": 0.3
+            }
+        }
     ]
 }
