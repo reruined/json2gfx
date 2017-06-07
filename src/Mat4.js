@@ -8,6 +8,8 @@ const COLUMNS = 4;
 export default {
     identity,
     fromEulerAngles,
+    multiply,
+    translation,
 }
 
 function identity() {
@@ -16,6 +18,15 @@ function identity() {
         0, 1, 0, 0,
         0, 0, 1, 0,
         0, 0, 0, 1
+    ]);
+}
+
+function translation(v) {
+    return new Float32Array([
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        v[0], v[1], v[2], 1
     ]);
 }
 

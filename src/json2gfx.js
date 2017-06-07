@@ -156,12 +156,18 @@ function degToRad(degrees) {
 }
 
 function getTransform(gl, node) {
+    let rotation = Mat4.identity();
     if('orientation' in node) {
         const anglesInRadians = node.orientation.map(degree => degToRad(degree));
-        return Mat4.fromEulerAngles(anglesInRadians);
+        rotation = Mat4.fromEulerAngles(anglesInRadians);
     }
 
-    return Mat4.identity();
+    let translation = Mat4.identity();
+    if('position' in node) {
+        translation = Mat4.translation(node.position);
+    }
+
+    return Mat4.multiply(translation, rotation);
 }
 
 function renderMesh(gl, mesh, program, camera, color, transform) {
