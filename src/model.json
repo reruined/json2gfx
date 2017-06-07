@@ -8,11 +8,12 @@
         {
             "name": "main-camera",
             "type": "camera",
-            "position": [0, 0, 1]
+            "position": [0, 0.1, 1]
         },
 
         {
             "color": "gray",
+            "orientation": [0, 0, 180],
             "geometry": {
                 "shape": "triangle"
             }
@@ -20,6 +21,7 @@
 
         {
             "color": "blue",
+            "orientation": [-90, 0, 0],
             "geometry": {
                 "shape": "triangle",
                 "size": 0.5

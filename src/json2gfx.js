@@ -2,6 +2,8 @@ import Shader from './Shader.js';
 import ShaderProgram from './ShaderProgram.js';
 import Type from './Type.js';
 import Tree from './Tree.js';
+import Mat4 from './Mat4.js';
+
 import vsSrc from './primitive.vert';
 import fsSrc from './primitive.frag';
 
@@ -29,9 +31,10 @@ function renderNode(gl, node) {
     const program = getProgram(gl, node);
     const camera = getCamera(gl, node);
     const color = getColor(gl, node);
+    const transform = getTransform(gl, node);
 
     if(mesh) {
-        renderMesh(gl, mesh, program, camera, color);
+        renderMesh(gl, mesh, program, camera, color, transform);
     }
 
     (node.children || []).forEach(child => renderNode(gl, child));
@@ -121,12 +124,25 @@ function getCamera(gl, node) {
     };
 }
 
-function renderMesh(gl, mesh, program, camera, color) {
+function degToRad(degrees) {
+    return degrees * (Math.PI / 180);
+}
+
+function getTransform(gl, node) {
+    if('orientation' in node) {
+        const anglesInRadians = node.orientation.map(degree => degToRad(degree));
+        return Mat4.fromEulerAngles(anglesInRadians);
+    }
+
+    return Mat4.identity();
+}
+
+function renderMesh(gl, mesh, program, camera, color, transform) {
     const worldLocation = gl.getUniformLocation(program, 'world');
     const viewLocation = gl.getUniformLocation(program, 'view');
     const projectionLocation = gl.getUniformLocation(program, 'projection');
     const colorLocation = gl.getUniformLocation(program, 'color');
-    gl.uniformMatrix4fv(worldLocation, false, createIdentityMatrix());
+    gl.uniformMatrix4fv(worldLocation, false, transform);
     gl.uniformMatrix4fv(viewLocation, false, camera.view);
     gl.uniformMatrix4fv(projectionLocation, false, camera.projection);
     gl.uniform4fv(colorLocation, new Float32Array(color));
