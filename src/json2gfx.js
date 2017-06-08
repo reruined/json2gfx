@@ -4,8 +4,8 @@ import Type from './Type.js';
 import Tree from './Tree.js';
 import Mat4 from './Mat4.js';
 
-import vsSrc from './primitive.vert';
-import fsSrc from './primitive.frag';
+import vsSrc from './ambient.vert';
+import fsSrc from './ambient.frag';
 
 const programs = {
     primitive: {
