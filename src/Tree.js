@@ -3,6 +3,7 @@ import Type from './Type.js';
 
 export default {
     fromObject,
+    findAll,
     findByName,
     findValueReverse,
 };
@@ -23,6 +24,20 @@ function fromObject(object, parent = null, root = object) {
             children
         }
     );
+}
+
+function findAll(object, predicate, container = []) {
+    console.assert(Type.isObject(object));
+    console.assert(Type.isFunction(predicate));
+
+    if(predicate(object)) {
+        container.push(object);
+    }
+
+    (object.children || [])
+        .forEach(child => findAll(child, predicate, container));
+
+    return container;
 }
 
 function findByName(node, name) {
