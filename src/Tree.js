@@ -6,24 +6,23 @@ export default {
     findAll,
     findByName,
     findValueReverse,
+    getRoot,
 };
 
-function fromObject(object, parent = null, root = object) {
+function fromObject(object, parent = null) {
     console.assert(Type.isObject(object));
 
-    const children = (object.children || [])
-        .map(child => fromObject(child, object, root));
-
-    return Object.assign(
+    const node = Object.assign(
         {
             parent,
-            root
         },
         object,
-        {
-            children
-        }
     );
+
+    node.children = (node.children || [])
+        .map(child => fromObject(child, node));
+
+    return node;
 }
 
 function findAll(object, predicate, container = []) {
@@ -65,4 +64,12 @@ function findValueReverse(node, callback) {
     }
 
     return findValueReverse(node.parent, callback);
+}
+
+function getRoot(node) {
+    if(!node.parent) {
+        return node;
+    }
+
+    return getRoot(node.parent);
 }

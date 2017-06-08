@@ -10,6 +10,7 @@ module.exports = {
     watchOptions: {
 
     },
+    devtool: 'inline-source-map',
     module: {
         rules: [
             {

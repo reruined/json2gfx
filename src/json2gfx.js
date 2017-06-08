@@ -4,13 +4,20 @@ import Type from './Type.js';
 import Tree from './Tree.js';
 import Mat4 from './Mat4.js';
 
-import vsSrc from './ambient.vert';
-import fsSrc from './ambient.frag';
+import gAmbientVertSrc from './ambient.vert';
+import gAmbientFragSrc from './ambient.frag';
+
+import gLightVertSrc from './light.vert';
+import gLightFragSrc from './light.frag';
 
 const programs = {
-    primitive: {
-        vsSrc,
-        fsSrc
+    ambient: {
+        vsSrc: gAmbientVertSrc,
+        fsSrc: gAmbientFragSrc,
+    },
+    light: {
+        vsSrc: gLightVertSrc,
+        fsSrc: gLightFragSrc,
     }
 };
 
@@ -19,15 +26,29 @@ export default json2gfx;
 function json2gfx(canvas, model) {
     const gl = canvas.getContext('webgl');
     gl.enable(gl.DEPTH_TEST);
+    gl.depthFunc(gl.LEQUAL);
+    gl.enable(gl.CULL_FACE);
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
     gl.clearColor(...toRGBA(model.background));
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     const tree = Tree.fromObject(model);
-    renderNode(gl, tree);
+
+    // render geometries
+    gl.disable(gl.BLEND);
+    Tree
+        .findAll(tree, node => 'geometry' in node)
+        .forEach(node => renderGeometryNode(gl, node));
+
+    // render lights
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.ONE, gl.ONE);
+    Tree
+        .findAll(tree, node => 'light' in node)
+        .forEach(node => renderLightNode(gl, node));
 }
 
-function renderNode(gl, node) {
+function renderGeometryNode(gl, node) {
     const mesh = getMesh(gl, node);
     const program = getProgram(gl, node);
     const camera = getCamera(gl, node);
@@ -47,8 +68,39 @@ function renderNode(gl, node) {
             }
         });
     }
+}
 
-    (node.children || []).forEach(child => renderNode(gl, child));
+function renderLightNode(gl, lightNode) {
+    const lightProgram = getProgram(gl, lightNode);
+    const lightColor = getColor(gl, lightNode);
+    lightColor[0] *= lightNode.light.intensity;
+    lightColor[1] *= lightNode.light.intensity;
+    lightColor[2] *= lightNode.light.intensity;
+
+    const geometryInstances = Tree
+        .findAll(Tree.getRoot(lightNode), node => 'geometry' in node)
+        .map(node => ({
+            camera: getCamera(gl, node),
+            transform: getTransform(gl, node),
+            mesh: getMesh(gl, node),
+            color: new Float32Array(getColor(gl, node))
+        }));
+
+    geometryInstances.forEach(instance => {
+        renderCommand(gl, {
+            program: lightProgram,
+            mesh: instance.mesh,
+            mode: gl.TRIANGLES,
+            uniforms: {
+                world: instance.transform,
+                view: instance.camera.view,
+                projection: instance.camera.projection,
+                color: instance.color,
+                lightColor: new Float32Array(lightColor),
+                lightPos: new Float32Array(lightNode.position)
+            }
+        });
+    });
 }
 
 function getColor(gl, node) {
@@ -67,6 +119,14 @@ function getTrianglePositions(scale) {
         .map(item => item * scale);
 }
 
+function getTriangleNormals() {
+    return new Float32Array([
+        0, 0, 1,
+        0, 0, 1,
+        0, 0, 1
+    ]);
+}
+
 function getPlanePositions(scale) {
     return new Float32Array([
         -0.5, -0.5,
@@ -78,6 +138,18 @@ function getPlanePositions(scale) {
         -0.5, -0.5
     ])
         .map(item => item * scale);
+}
+
+function getPlaneNormals() {
+    return new Float32Array([
+        0, 0, 1,
+        0, 0, 1,
+        0, 0, 1,
+
+        0, 0, 1,
+        0, 0, 1,
+        0, 0, 0
+    ]);
 }
 
 function getGeometry(gl, node) {
@@ -93,6 +165,10 @@ function getGeometry(gl, node) {
                 itemSize: 2,
                 data: getTrianglePositions(node.geometry.size || 1)
             },
+            normals: {
+                itemSize: 3,
+                data: getTriangleNormals()
+            }
         };
     }
 
@@ -102,6 +178,10 @@ function getGeometry(gl, node) {
                 itemSize: 2,
                 data: getPlanePositions(node.geometry.size || 1)
             },
+            normals: {
+                itemSize: 3,
+                data: getPlaneNormals()
+            }
         };
     }
 
@@ -120,6 +200,12 @@ function getMesh(gl, node) {
     gl.bufferData(gl.ARRAY_BUFFER, geometry.positions.data, gl.STATIC_DRAW);
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
 
+    // prepare normal buffer
+    const normalBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, geometry.normals.data, gl.STATIC_DRAW);
+    gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
     return {
         layout: [
             {
@@ -130,6 +216,14 @@ function getMesh(gl, node) {
                 stride: 0,
                 offset: 0
             },
+            {
+                buffer: normalBuffer,
+                type: gl.FLOAT,
+                elementLength: geometry.normals.itemSize,
+                normalize: true,
+                stride: 0,
+                offset: 0,
+            }
         ],
         vertexCount: geometry.positions.data.length / geometry.positions.itemSize
     };
@@ -150,10 +244,8 @@ function getProgram(gl, node) {
 }
 
 function getCamera(gl, node) {
-    console.assert('root' in node);
-
     const cameraName = Tree.findValueReverse(node, item => item.camera);
-    const camera = Tree.findByName(node.root, cameraName);
+    const camera = Tree.findByName(Tree.getRoot(node), cameraName);
     const view = createInverseMatrix(Mat4.lookAt(camera.position, camera.lookAt, [0, 1, 0]));
 
     //view: createViewMatrix(camera.position),
@@ -184,6 +276,10 @@ function getTransform(gl, node) {
 
 function renderCommand(gl, command) {
     // commit unforms to program
+    console.assert(gl.isProgram(command.program));
+    if(!gl.isProgram(command.program)) {
+        debugger;
+    }
     gl.useProgram(command.program);
     Object.keys(command.uniforms)
         .map(key => ({ key, value: command.uniforms[key] }))
