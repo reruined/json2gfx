@@ -35,7 +35,17 @@ function renderNode(gl, node) {
     const transform = getTransform(gl, node);
 
     if(mesh) {
-        renderMesh(gl, mesh, program, camera, color, transform);
+        renderCommand(gl, {
+            program,
+            mesh,
+            mode: gl.TRIANGLES,
+            uniforms: {
+                world: transform,
+                view: camera.view,
+                projection: camera.projection,
+                color: new Float32Array(color)
+            }
+        });
     }
 
     (node.children || []).forEach(child => renderNode(gl, child));
@@ -172,17 +182,28 @@ function getTransform(gl, node) {
     return Mat4.multiply(translation, rotation);
 }
 
-function renderMesh(gl, mesh, program, camera, color, transform) {
-    const worldLocation = gl.getUniformLocation(program, 'world');
-    const viewLocation = gl.getUniformLocation(program, 'view');
-    const projectionLocation = gl.getUniformLocation(program, 'projection');
-    const colorLocation = gl.getUniformLocation(program, 'color');
-    gl.uniformMatrix4fv(worldLocation, false, transform);
-    gl.uniformMatrix4fv(viewLocation, false, camera.view);
-    gl.uniformMatrix4fv(projectionLocation, false, camera.projection);
-    gl.uniform4fv(colorLocation, new Float32Array(color));
+function renderCommand(gl, command) {
+    // commit unforms to program
+    gl.useProgram(command.program);
+    Object.keys(command.uniforms)
+        .map(key => ({ key, value: command.uniforms[key] }))
+        .forEach(uniform => {
+            const location = gl.getUniformLocation(command.program, uniform.key);
+            if(uniform.value.length === 16) {
+                gl.uniformMatrix4fv(location, false, uniform.value);
+            }
+            if(uniform.value.length === 4) {
+                gl.uniform4fv(location, uniform.value);
+            }
+            if(uniform.value.length === 3) {
+                gl.uniform3fv(location, uniform.value);
+            }
+        });
+    gl.useProgram(null);
 
-    mesh.layout.forEach((item, index) => {
+    // assign mesh vertices to program
+    gl.useProgram(command.program);
+    command.mesh.layout.forEach((item, index) => {
         gl.bindBuffer(gl.ARRAY_BUFFER, item.buffer);
         gl.vertexAttribPointer(
             index,
@@ -194,9 +215,16 @@ function renderMesh(gl, mesh, program, camera, color, transform) {
         );
         gl.enableVertexAttribArray(index);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
-    });
+    })
 
-    gl.drawArrays(gl.TRIANGLES, 0, mesh.vertexCount);
+    // draw
+    gl.drawArrays(command.mode, 0, command.mesh.vertexCount);
+
+    // reset state
+    command.mesh.layout.forEach((item, index) => {
+        gl.disableVertexAttribArray(index);
+    });
+    gl.useProgram(null);
 }
 
 function createViewMatrix(position) {
