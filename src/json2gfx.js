@@ -279,9 +279,7 @@ function getTransform(gl, node) {
 function renderCommand(gl, command) {
     // commit unforms to program
     console.assert(gl.isProgram(command.program));
-    if(!gl.isProgram(command.program)) {
-        debugger;
-    }
+
     gl.useProgram(command.program);
     Object.keys(command.uniforms)
         .map(key => ({ key, value: command.uniforms[key] }))
