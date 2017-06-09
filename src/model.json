@@ -30,7 +30,7 @@
             },
             "color": "white",
             "position": [0, 0.5, -2],
-            "orientation": [0, 55, 0],
+            "orientation": [0, -15, 0],
 
             "children": [
                 {
@@ -44,7 +44,19 @@
                     "geometry": {
                         "shape": "triangle"
                     },
-                    "position": [0, 0, 1]
+                    "orientation": [0, 45, 0],
+                    "position": [0, 0, 1],
+
+                    "children": [
+                        {
+                            "position": [0, 0, 0.1],
+                            "color": "purple",
+                            "geometry": {
+                                "size": 0.5,
+                                "shape": "triangle"
+                            }
+                        }
+                    ]
                 }
             ]
         },

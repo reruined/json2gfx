@@ -1,7 +1,11 @@
+'use strict';
+
 import Shader from './Shader.js';
 import ShaderProgram from './ShaderProgram.js';
 import Type from './Type.js';
 import Tree from './Tree.js';
+import Vec3 from './Vec3.js';
+import Mat3 from './Mat3.js';
 import Mat4 from './Mat4.js';
 
 import gAmbientVertSrc from './ambient.vert';
@@ -259,21 +263,50 @@ function degToRad(degrees) {
     return degrees * (Math.PI / 180);
 }
 
+function getOrientation(node) {
+    if(!node) {
+        return Vec3.zero();
+    }
+
+    if('orientation' in node === false) {
+        return Vec3.zero();
+    }
+
+    const orientationInRadians = node.orientation.map(degToRad);
+    return Vec3.fromValues(...orientationInRadians);
+}
+
+
+function getRotationMatrix(node) {
+    if(!node) {
+        return Mat3.identity();
+    }
+
+    const orientation = getOrientation(node);
+    return Mat3.multiply(getRotationMatrix(node.parent), Mat3.fromEulerAngles(orientation));
+}
+
+function getPosition(node) {
+    if(!node) {
+        return Vec3.zero();
+    }
+
+    if('position' in node === false) {
+        return getPosition(node.parent);
+    }
+
+    const parentRotation = getRotationMatrix(node.parent);
+    const position = Vec3.transform(node.position, parentRotation);
+    return Vec3.add(getPosition(node.parent), position);
+}
+
 function getTransform(gl, node) {
-    let rotation = Mat4.identity();
-    if('orientation' in node) {
-        const anglesInRadians = node.orientation.map(degree => degToRad(degree));
-        rotation = Mat4.fromEulerAngles(anglesInRadians);
-    }
+    const rotation = getRotationMatrix(node);
+    const position = getPosition(node);
 
-    let translation = Mat4.identity();
-    if('position' in node) {
-        translation = Mat4.translation(node.position);
-    }
-
-    const transform = Mat4.multiply(rotation, translation);
-    const parentTransform = node.parent ? getTransform(gl, node.parent) : Mat4.identity();
-    return Mat4.multiply(parentTransform, transform);
+    const transform = Mat4.setTranslation(Mat4.fromMat3(rotation), position);
+    //return Mat4.translation(position);
+    return transform;
 }
 
 function renderCommand(gl, command) {

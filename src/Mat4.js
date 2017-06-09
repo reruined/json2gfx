@@ -5,13 +5,33 @@ import Vec4 from './Vec4.js';
 const ROWS = 4;
 const ROW_LENGTH = 4;
 const COLUMNS = 4;
+const ELEMENTS = ROWS * COLUMNS;
 
 export default {
     identity,
     fromEulerAngles,
+    fromMat3,
     multiply,
     translation,
     lookAt,
+    setTranslation,
+}
+
+function setTranslation(m, v) {
+    m[12] = v[0];
+    m[13] = v[1];
+    m[14] = v[2];
+
+    return m;
+}
+
+function fromMat3(m) {
+    return new Float32Array([
+        m[0], m[1], m[2], 0,
+        m[3], m[4], m[5], 0,
+        m[6], m[7], m[8], 0,
+        0,       0,    0, 1,
+    ]);
 }
 
 function lookAt(eye, target, up) {
@@ -105,7 +125,7 @@ function multiply(m1, m2, ...matrices) {
         return m1;
     }
 
-    let result = new Float32Array(16);
+    let result = new Float32Array(ELEMENTS);
     for(let row = 0; row < ROWS; row++) {
         for(let col = 0; col < COLUMNS; col++) {
             const m1row = getRow(m1, row);
