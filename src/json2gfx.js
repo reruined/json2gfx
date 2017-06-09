@@ -271,7 +271,7 @@ function getTransform(gl, node) {
         translation = Mat4.translation(node.position);
     }
 
-    return Mat4.multiply(translation, rotation);
+    return Mat4.multiply(rotation, translation);
 }
 
 function renderCommand(gl, command) {
