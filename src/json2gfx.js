@@ -271,7 +271,9 @@ function getTransform(gl, node) {
         translation = Mat4.translation(node.position);
     }
 
-    return Mat4.multiply(rotation, translation);
+    const transform = Mat4.multiply(rotation, translation);
+    const parentTransform = node.parent ? getTransform(gl, node.parent) : Mat4.identity();
+    return Mat4.multiply(parentTransform, transform);
 }
 
 function renderCommand(gl, command) {
