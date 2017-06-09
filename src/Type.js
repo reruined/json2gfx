@@ -6,6 +6,7 @@ export default {
     isUndefined,
     isNull,
     isObject,
+    isNumber,
 };
 
 function getName(value) {
@@ -42,4 +43,8 @@ function isNull(value) {
 
 function isObject(value) {
     return Object(value) === value;
+}
+
+function isNumber(value) {
+    return typeof value === 'number';
 }
