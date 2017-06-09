@@ -73,9 +73,6 @@ function renderGeometryNode(gl, node) {
 function renderLightNode(gl, lightNode) {
     const lightProgram = getProgram(gl, lightNode);
     const lightColor = getColor(gl, lightNode);
-    lightColor[0] *= lightNode.light.intensity;
-    lightColor[1] *= lightNode.light.intensity;
-    lightColor[2] *= lightNode.light.intensity;
 
     const geometryInstances = Tree
         .findAll(Tree.getRoot(lightNode), node => 'geometry' in node)
@@ -97,7 +94,10 @@ function renderLightNode(gl, lightNode) {
                 projection: instance.camera.projection,
                 color: instance.color,
                 lightColor: new Float32Array(lightColor),
-                lightPos: new Float32Array(lightNode.position)
+                lightPos: new Float32Array(lightNode.position),
+                lightRadius: lightNode.light.radius || 1,
+                lightCutoff: lightNode.light.cutoff || 0,
+                lightIntensity: lightNode.light.intensity,
             }
         });
     });
@@ -148,7 +148,7 @@ function getPlaneNormals() {
 
         0, 0, 1,
         0, 0, 1,
-        0, 0, 0
+        0, 0, 1
     ]);
 }
 
@@ -285,6 +285,9 @@ function renderCommand(gl, command) {
         .map(key => ({ key, value: command.uniforms[key] }))
         .forEach(uniform => {
             const location = gl.getUniformLocation(command.program, uniform.key);
+            if(Type.isNumber(uniform.value)) {
+                gl.uniform1f(location, uniform.value);
+            }
             if(uniform.value.length === 16) {
                 gl.uniformMatrix4fv(location, false, uniform.value);
             }

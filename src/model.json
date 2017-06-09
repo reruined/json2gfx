@@ -1,5 +1,5 @@
 {
-    "background": "beige",
+    "background": "black",
     "shader": "ambient",
     "camera": "main-camera",
 
@@ -8,64 +8,39 @@
         {
             "name": "main-camera",
             "type": "camera",
-            "position": [0.5, 0.5, 1],
+            "position": [1, 1, 2],
             "lookAt": [0, 0, 0],
-            "fov": 60
+            "fov": 75
         },
 
         {
-            "shader": "light",
-            "position": [0.3, 0.1, -0.3],
-            "color": "red",
-            "light": {
-                "intensity": 1
-            }
-        },
-
-        {
-            "shader": "light",
-            "position": [0, 0.1, 0.1],
-            "color": "white",
-            "light": {
-                "intensity": 1
-            }
-        },
-
-        {
-            "shader": "light",
-            "position": [-0.3, 0.1, 0.3],
-            "color": "green",
-            "light": {
-                "intensity": 1
-            }
-        },
-
-        {
-            "color": "blue",
-            "position": [0, 0.15, 0],
-            "orientation": [0, 0, 0],
+            "name": "floor",
             "geometry": {
-                "shape": "triangle",
-                "size": 0.3
-            }
-        },
-
-        {
+                "shape": "plane",
+                "size": 4
+            },
             "color": "white",
-            "position": [0.05, 0.05, -0.1],
-            "orientation": [0, 180, 0],
-            "geometry": {
-                "shape": "triangle",
-                "size": 0.1
-            }
+            "orientation": [-90, 0, 0]
         },
 
         {
-            "color": "gray",
-            "orientation": [-90, 0, 0],
             "geometry": {
                 "shape": "plane",
                 "size": 1
+            },
+            "color": "blue",
+            "position": [0, 0.5, -1],
+            "orientation": [0, 0, 0]
+        },
+
+
+        {
+            "shader": "light",
+            "position": [0.0, 1, 0],
+            "color": [1, 1, 1],
+            "light": {
+                "intensity": 1,
+                "radius": 1
             }
         }
 

@@ -8,7 +8,7 @@ varying vec3 surfacePos;
 varying vec3 surfaceNormal;
 
 void main() {
-    surfaceNormal = (world * vec4(normal, 1)).xyz;
+    surfaceNormal = (mat3(world) * normal);
     surfacePos = (world * position).xyz;
     gl_Position = projection * view * world * position;
 }
