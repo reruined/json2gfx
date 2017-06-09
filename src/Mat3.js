@@ -8,10 +8,18 @@ const ROW_LENGTH = COLUMNS;
 const ELEMENTS = ROWS * COLUMNS;
 
 export default {
+    parse,
     identity,
     fromEulerAngles,
     multiply,
     getColumn
+}
+
+function parse(value) {
+    if(Type.isArray(value) && value.length === 3) {
+        return fromEulerAngles(...value);
+    }
+    throw new TypeError(`Failed to parse value of type '${Type.getName(value)}' into a Mat3`);
 }
 
 function identity() {

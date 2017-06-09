@@ -1,6 +1,8 @@
+import Type from './Type.js';
 import Mat3 from './Mat3.js';
 
 export default {
+    parse,
     fromValues,
     add,
     sub,
@@ -10,6 +12,22 @@ export default {
     zero,
     transform,
 };
+
+function parse(value) {
+    if(value instanceof Float32Array) {
+        return value.slice();
+    }
+
+    if(Type.isArray(value)) {
+        return fromValues(...value);
+    }
+
+    if(Type.isUndefined(value)) {
+        return zero();
+    }
+
+    throw new TypeError(`Failed to parse value of type '${Type.getName(value)}' into a Vec3`);
+}
 
 function cross(v1, v2) {
     return new Float32Array([

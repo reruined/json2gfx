@@ -56,8 +56,8 @@ function renderGeometryNode(gl, node) {
     const mesh = getMesh(gl, node);
     const program = getProgram(gl, node);
     const camera = getCamera(gl, node);
-    const color = getColor(gl, node);
-    const transform = getTransform(gl, node);
+    const color = getColor(node);
+    const transform = resolveTransform(node);
 
     if(mesh) {
         renderCommand(gl, {
@@ -76,15 +76,15 @@ function renderGeometryNode(gl, node) {
 
 function renderLightNode(gl, lightNode) {
     const lightProgram = getProgram(gl, lightNode);
-    const lightColor = getColor(gl, lightNode);
+    const lightColor = getColor(lightNode);
 
     const geometryInstances = Tree
         .findAll(Tree.getRoot(lightNode), node => 'geometry' in node)
         .map(node => ({
             camera: getCamera(gl, node),
-            transform: getTransform(gl, node),
+            transform: resolveTransform(node),
             mesh: getMesh(gl, node),
-            color: new Float32Array(getColor(gl, node))
+            color: new Float32Array(getColor(node))
         }));
 
     geometryInstances.forEach(instance => {
@@ -107,7 +107,7 @@ function renderLightNode(gl, lightNode) {
     });
 }
 
-function getColor(gl, node) {
+function getColor(node) {
     return toRGBA(
         Tree.findValueReverse(node, item => item.color) ||
         "white"
@@ -252,7 +252,6 @@ function getCamera(gl, node) {
     const camera = Tree.findByName(Tree.getRoot(node), cameraName);
     const view = createInverseMatrix(Mat4.lookAt(camera.position, camera.lookAt, [0, 1, 0]));
 
-    //view: createViewMatrix(camera.position),
     return {
         view,
         projection: createProjectionMatrix(gl.canvas.width / gl.canvas.height, degToRad(camera.fov), 0.1, 100)
@@ -263,50 +262,45 @@ function degToRad(degrees) {
     return degrees * (Math.PI / 180);
 }
 
-function getOrientation(node) {
-    if(!node) {
-        return Vec3.zero();
-    }
-
-    if('orientation' in node === false) {
-        return Vec3.zero();
-    }
-
-    const orientationInRadians = node.orientation.map(degToRad);
-    return Vec3.fromValues(...orientationInRadians);
-}
-
-
-function getRotationMatrix(node) {
+function resolveOrientation(node) {
     if(!node) {
         return Mat3.identity();
     }
 
-    const orientation = getOrientation(node);
-    return Mat3.multiply(getRotationMatrix(node.parent), Mat3.fromEulerAngles(orientation));
+    const parentOrientation = resolveOrientation(node.parent);
+    const localOrientation = getOrientation(node);
+    return Mat3.multiply(parentOrientation, localOrientation);
 }
 
-function getPosition(node) {
+function resolvePosition(node) {
     if(!node) {
         return Vec3.zero();
     }
 
-    if('position' in node === false) {
-        return getPosition(node.parent);
-    }
-
-    const parentRotation = getRotationMatrix(node.parent);
-    const position = Vec3.transform(node.position, parentRotation);
-    return Vec3.add(getPosition(node.parent), position);
+    const parentPosition = resolvePosition(node.parent);
+    const parentRotation = resolveOrientation(node.parent);
+    const localPosition = Vec3.transform(getPosition(node), parentRotation);
+    return Vec3.add(parentPosition, localPosition);
 }
 
-function getTransform(gl, node) {
-    const rotation = getRotationMatrix(node);
-    const position = getPosition(node);
+function resolveTransform(node) {
+    const rotation = resolveOrientation(node);
+    const position = resolvePosition(node);
 
     const transform = Mat4.setTranslation(Mat4.fromMat3(rotation), position);
-    //return Mat4.translation(position);
     return transform;
+}
+
+function getOrientation(node) {
+    console.assert(node);
+
+    const orientation = Vec3.parse(node.orientation).map(degToRad);
+    return Mat3.fromEulerAngles(orientation);
+}
+
+function getPosition(node) {
+    console.assert(node);
+    return Vec3.parse(node.position);
 }
 
 function renderCommand(gl, command) {
@@ -357,15 +351,6 @@ function renderCommand(gl, command) {
         gl.disableVertexAttribArray(index);
     });
     gl.useProgram(null);
-}
-
-function createViewMatrix(position) {
-    return new Float32Array(createInverseMatrix([
-        1, 0, 0, 0,
-        0, 1, 0, 0,
-        0, 0, 1, 0,
-        position[0], position[1], position[2], 1
-    ]));
 }
 
 function createInverseMatrix(mat) {
@@ -508,7 +493,7 @@ function createProjectionMatrix(ar, fov, near, far) {
 
     const f = 1.0 / Math.tan(fov * 0.5);
 
-    let m = createIdentityMatrix();
+    let m = Mat4.identity();
     m[0] = f / ar;
     m[5] = f;
     m[10] = (far + near) / (near - far);
@@ -517,15 +502,6 @@ function createProjectionMatrix(ar, fov, near, far) {
     m[15] = 0.0;
 
     return m;
-}
-
-function createIdentityMatrix() {
-    return [
-        1, 0, 0, 0,
-        0, 1, 0, 0,
-        0, 0, 1, 0,
-        0, 0, 0, 1
-    ];
 }
 
 function toRGBA(value) {
