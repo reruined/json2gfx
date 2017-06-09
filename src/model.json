@@ -17,7 +17,7 @@
             "name": "floor",
             "geometry": {
                 "shape": "plane",
-                "size": 4
+                "size": 400
             },
             "color": "white",
             "orientation": [-90, 0, 0]
