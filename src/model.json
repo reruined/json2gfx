@@ -8,8 +8,8 @@
         {
             "name": "main-camera",
             "type": "camera",
-            "position": [1, 1, 2],
-            "lookAt": [0, 0, 0],
+            "position": [2, 2, 3],
+            "lookAt": [0, 0.5, 0],
             "fov": 75
         },
 
@@ -28,9 +28,39 @@
                 "shape": "plane",
                 "size": 1
             },
-            "color": "blue",
-            "position": [0, 0.5, -1],
-            "orientation": [0, 0, 0]
+            "color": "white",
+            "position": [0, 0.5, -2],
+            "orientation": [0, 0, 0],
+
+            "children": [
+                {
+                    "geometry": {
+                        "shape": "triangle"
+                    },
+                    "position": [0, 1, 0],
+                    "color": "green"
+                }
+            ]
+        },
+
+        {
+            "geometry": {
+                "shape": "plane",
+                "size": 1
+            },
+            "color": "white",
+            "position": [-2, 0.5, 0],
+            "orientation": [0, 90, 0],
+
+            "children": [
+                {
+                    "color": "tomato",
+                    "geometry": {
+                        "shape": "triangle"
+                    },
+                    "position": [0, 1, 0]
+                }
+            ]
         },
 
 
