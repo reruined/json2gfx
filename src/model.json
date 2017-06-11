@@ -32,10 +32,11 @@
         },
 
         {
-            "shader": "light",
+            "shader": "pointlight",
             "position": [-2, 3.2, 0],
             "color": [1, 1, 1],
             "light": {
+                "type": "point",
                 "intensity": 1,
                 "radius": 3
             }

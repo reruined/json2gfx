@@ -13,17 +13,17 @@ import Mesh from './Mesh.js';
 import gAmbientVertSrc from './ambient.vert';
 import gAmbientFragSrc from './ambient.frag';
 
-import gLightVertSrc from './light.vert';
-import gLightFragSrc from './light.frag';
+import gPointlightVertSrc from './pointlight.vert';
+import gPointlightFragSrc from './pointlight.frag';
 
 const programs = {
     ambient: {
         vsSrc: gAmbientVertSrc,
         fsSrc: gAmbientFragSrc,
     },
-    light: {
-        vsSrc: gLightVertSrc,
-        fsSrc: gLightFragSrc,
+    pointlight: {
+        vsSrc: gPointlightVertSrc,
+        fsSrc: gPointlightFragSrc,
     }
 };
 
