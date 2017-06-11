@@ -25,10 +25,10 @@
 
         {
             "geometry": {
-                "shape": "plane",
+                "shape": "cube",
                 "size": 1
             },
-            "color": "white",
+            "color": "salmon",
             "position": [0, 0.5, -2],
             "orientation": [0, -15, 0],
 
@@ -85,7 +85,7 @@
 
         {
             "shader": "light",
-            "position": [0.0, 1, 0],
+            "position": [0, 1.2, 0],
             "color": [1, 1, 1],
             "light": {
                 "intensity": 1,
