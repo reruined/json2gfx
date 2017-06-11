@@ -1,5 +1,5 @@
 {
-    "background": "black",
+    "background": 0.8,
     "shader": "ambient",
     "camera": "main-camera",
 
@@ -8,9 +8,9 @@
         {
             "name": "main-camera",
             "type": "camera",
-            "position": [2, 2, 3],
-            "lookAt": [0, 0.5, 0],
-            "fov": 75
+            "position": [0, 10, 10],
+            "lookAt": [0, 0.0, 0],
+            "fov": 45
         },
 
         {
