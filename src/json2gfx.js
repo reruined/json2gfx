@@ -5,6 +5,7 @@ import ShaderProgram from './ShaderProgram.js';
 import Type from './Type.js';
 import Tree from './Tree.js';
 import Vec3 from './Vec3.js';
+import Vec4 from './Vec4.js';
 import Mat3 from './Mat3.js';
 import Mat4 from './Mat4.js';
 
@@ -33,7 +34,7 @@ function json2gfx(canvas, model) {
     gl.depthFunc(gl.LEQUAL);
     gl.enable(gl.CULL_FACE);
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-    gl.clearColor(...toRGBA(model.background));
+    gl.clearColor(...getBackgroundColor(model));
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     const tree = Tree.fromObject(model);
@@ -105,13 +106,6 @@ function renderLightNode(gl, lightNode) {
             }
         });
     });
-}
-
-function getColor(node) {
-    return toRGBA(
-        Tree.findValueReverse(node, item => item.color) ||
-        "white"
-    );
 }
 
 function getTrianglePositions(scale) {
@@ -296,6 +290,16 @@ function getOrientation(node) {
 
     const orientation = Vec3.parse(node.orientation).map(degToRad);
     return Mat3.fromEulerAngles(orientation);
+}
+
+function getBackgroundColor(node) {
+    console.assert(node);
+    return parseColor(node.background);
+}
+
+function getColor(node) {
+    console.assert(node);
+    return parseColor(node.color);
 }
 
 function getPosition(node) {
@@ -504,28 +508,15 @@ function createProjectionMatrix(ar, fov, near, far) {
     return m;
 }
 
-function toRGBA(value) {
-    let color = null;
-
+function parseColor(value) {
     if(Type.isString(value)) {
-        color = namedColorToArray(value);
+        return Vec4.parse(convertNameToColor(value));
     }
 
-    if(Type.isArray(value)) {
-        color = value;
-    }
-
-    color = color
-        .slice(0, 4)
-        .reduce((color, item, index) => {
-            color[index] = item;
-            return color;
-        }, [0, 0, 0, 1]);
-
-    return color;
+    return Vec4.parse(value);
 }
 
-function namedColorToArray(colorName) {
+function convertNameToColor(colorName) {
     const element = document.createElement('div');
     element.style.color = colorName;
 
