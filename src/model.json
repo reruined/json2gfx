@@ -25,71 +25,19 @@
 
         {
             "geometry": {
-                "shape": "cube",
-                "size": 1
+                "shape": "cube"
             },
-            "color": "salmon",
-            "position": [0, 0.5, -2],
-            "orientation": [0, -15, 0],
-
-            "children": [
-                {
-                    "geometry": {
-                        "shape": "triangle"
-                    },
-                    "position": [0, 1, 0],
-                    "color": "green"
-                },
-                {
-                    "geometry": {
-                        "shape": "triangle"
-                    },
-                    "orientation": [0, 45, 0],
-                    "position": [0, 0, 1],
-                    "color": "white",
-
-                    "children": [
-                        {
-                            "position": [0, 0, 0.1],
-                            "color": "purple",
-                            "geometry": {
-                                "size": 0.5,
-                                "shape": "triangle"
-                            }
-                        }
-                    ]
-                }
-            ]
+            "color": "darkgray",
+            "position": [0, 0.5, -2]
         },
-
-        {
-            "geometry": {
-                "shape": "plane",
-                "size": 1
-            },
-            "color": "white",
-            "position": [-2, 0.5, 0],
-            "orientation": [0, 90, 0],
-
-            "children": [
-                {
-                    "color": "tomato",
-                    "geometry": {
-                        "shape": "triangle"
-                    },
-                    "position": [0, 1, 0]
-                }
-            ]
-        },
-
 
         {
             "shader": "light",
-            "position": [0, 1.2, 0],
+            "position": [-2, 3.2, 0],
             "color": [1, 1, 1],
             "light": {
                 "intensity": 1,
-                "radius": 1
+                "radius": 3
             }
         }
 
