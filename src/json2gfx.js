@@ -1,13 +1,14 @@
 'use strict';
 
-import Shader from './Shader.js';
-import ShaderProgram from './ShaderProgram.js';
-import Type from './Type.js';
-import Tree from './Tree.js';
 import Vec3 from './Vec3.js';
 import Vec4 from './Vec4.js';
 import Mat3 from './Mat3.js';
 import Mat4 from './Mat4.js';
+import Shader from './Shader.js';
+import ShaderProgram from './ShaderProgram.js';
+import Type from './Type.js';
+import Tree from './Tree.js';
+import Mesh from './Mesh.js';
 
 import gAmbientVertSrc from './ambient.vert';
 import gAmbientFragSrc from './ambient.frag';
@@ -108,47 +109,6 @@ function renderLightNode(gl, lightNode) {
     });
 }
 
-function getTrianglePositions(scale) {
-    return new Float32Array([
-        0.0, 0.5,
-        -0.5, -0.5,
-        0.5, -0.5
-    ])
-        .map(item => item * scale);
-}
-
-function getTriangleNormals() {
-    return new Float32Array([
-        0, 0, 1,
-        0, 0, 1,
-        0, 0, 1
-    ]);
-}
-
-function getPlanePositions(scale) {
-    return new Float32Array([
-        -0.5, -0.5,
-        0.5, -0.5,
-        0.5, 0.5,
-
-        0.5, 0.5,
-        -0.5, 0.5,
-        -0.5, -0.5
-    ])
-        .map(item => item * scale);
-}
-
-function getPlaneNormals() {
-    return new Float32Array([
-        0, 0, 1,
-        0, 0, 1,
-        0, 0, 1,
-
-        0, 0, 1,
-        0, 0, 1,
-        0, 0, 1
-    ]);
-}
 
 function getGeometry(gl, node) {
     console.assert(gl && node);
@@ -157,33 +117,7 @@ function getGeometry(gl, node) {
         return null;
     }
 
-    if(node.geometry.shape === 'triangle') {
-        return {
-            positions: {
-                itemSize: 2,
-                data: getTrianglePositions(node.geometry.size || 1)
-            },
-            normals: {
-                itemSize: 3,
-                data: getTriangleNormals()
-            }
-        };
-    }
-
-    if(node.geometry.shape === 'plane') {
-        return {
-            positions: {
-                itemSize: 2,
-                data: getPlanePositions(node.geometry.size || 1)
-            },
-            normals: {
-                itemSize: 3,
-                data: getPlaneNormals()
-            }
-        };
-    }
-
-    return null;
+    return Mesh.fromGeometry(node.geometry);
 }
 
 function getMesh(gl, node) {
