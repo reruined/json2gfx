@@ -185,12 +185,20 @@ function getProgram(gl, node) {
 
 function getCamera(gl, node) {
     const cameraName = Tree.findValueReverse(node, item => item.camera);
-    const camera = Tree.findByName(Tree.getRoot(node), cameraName);
-    const view = createInverseMatrix(Mat4.lookAt(camera.position, camera.lookAt, [0, 1, 0]));
+    const cameraNode = Tree.findByName(Tree.getRoot(node), cameraName);
+    const view = createInverseMatrix(Mat4.lookAt(cameraNode.position, cameraNode.camera.lookAt, [0, 1, 0]));
+    const projection = cameraNode.camera.type === 'perspective' ?
+        createPerspectiveProjection(
+            gl.canvas.width / gl.canvas.height,
+            degToRad(cameraNode.camera.fov),
+            0.1,
+            100
+        ) :
+        Mat4.identity();
 
     return {
         view,
-        projection: createProjectionMatrix(gl.canvas.width / gl.canvas.height, degToRad(camera.fov), 0.1, 100)
+        projection
     };
 }
 
@@ -431,7 +439,7 @@ function createInverseMatrix(mat) {
     return result;
 }
 
-function createProjectionMatrix(ar, fov, near, far) {
+function createPerspectiveProjection(ar, fov, near, far) {
     console.assert(far > near);
     console.assert(fov > 0);
     console.assert(fov < Math.PI * 2);
