@@ -16,6 +16,9 @@ import gAmbientFragSrc from './ambient.frag';
 import gPointlightVertSrc from './pointlight.vert';
 import gPointlightFragSrc from './pointlight.frag';
 
+import gSunlightVertSrc from './sunlight.vert';
+import gSunlightFragSrc from './sunlight.frag';
+
 const programs = {
     ambient: {
         vsSrc: gAmbientVertSrc,
@@ -24,7 +27,11 @@ const programs = {
     pointlight: {
         vsSrc: gPointlightVertSrc,
         fsSrc: gPointlightFragSrc,
-    }
+    },
+    sunlight: {
+        vsSrc: gSunlightVertSrc,
+        fsSrc: gSunlightFragSrc,
+    },
 };
 
 export default json2gfx;
@@ -104,6 +111,7 @@ function renderLightNode(gl, lightNode) {
                 lightRadius: lightNode.light.radius || 1,
                 lightCutoff: lightNode.light.cutoff || 0,
                 lightIntensity: lightNode.light.intensity,
+                lightDirection: Vec3.normalize(Vec3.parse(lightNode.light.direction))
             }
         });
     });

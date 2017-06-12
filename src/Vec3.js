@@ -65,7 +65,7 @@ function length(v) {
     return Math.sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
 }
 
-function fromValues(x, y, z) {
+function fromValues(x = 0, y = 0, z = 0) {
     return new Float32Array([x, y, z]);
 }
 
