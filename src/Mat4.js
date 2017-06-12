@@ -15,6 +15,7 @@ export default {
     translation,
     lookAt,
     setTranslation,
+    orthographic,
 }
 
 function setTranslation(m, v) {
@@ -153,4 +154,26 @@ function getColumn(m, col) {
         m[2 * ROW_LENGTH + col],
         m[3 * ROW_LENGTH + col],
     );
+}
+
+function orthographic(left, right, bottom, top, near, far) {
+    console.assert(Type.isNumber(left));
+    console.assert(Type.isNumber(right));
+    console.assert(Type.isNumber(bottom));
+    console.assert(Type.isNumber(top));
+    console.assert(Type.isNumber(near));
+    console.assert(Type.isNumber(far));
+
+    const width = right - left;
+    const height = top - bottom;
+    const depth = far - near;
+
+    return new Float32Array([
+        2 / width, 0, 0, 0,
+        0, 2 / height, 0, 0,
+        0, 0, -2 / depth, 0,
+        -((right + left) / width), -((top + bottom) / height), -((far + near) / depth), 1,
+    ]);
+
+    return identity();
 }

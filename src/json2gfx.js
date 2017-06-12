@@ -194,7 +194,14 @@ function getCamera(gl, node) {
             0.1,
             100
         ) :
-        Mat4.identity();
+        Mat4.orthographic(
+            cameraNode.camera.box.left,
+            cameraNode.camera.box.right,
+            cameraNode.camera.box.bottom,
+            cameraNode.camera.box.top,
+            cameraNode.camera.box.near,
+            cameraNode.camera.box.far,
+        );
 
     return {
         view,

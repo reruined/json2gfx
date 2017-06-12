@@ -8,11 +8,19 @@
         {
             "name": "main-camera",
             "type": "camera",
-            "position": [0, 10, 10],
+            "position": [5, 10, 10],
             "camera": {
-                "type": "perspective",
+                "type": "orthographic",
                 "fov": 45,
-                "lookAt": [0, 0.0, 0]
+                "lookAt": [0, 0.0, 0],
+                "box": {
+                    "left": -10,
+                    "right": 10,
+                    "bottom": -10,
+                    "top": 10,
+                    "near": -50,
+                    "far": 50
+                }
             }
         },
 
@@ -20,7 +28,7 @@
             "name": "floor",
             "geometry": {
                 "shape": "plane",
-                "size": 400
+                "size": 4
             },
             "color": "white",
             "orientation": [-90, 0, 0]
@@ -31,7 +39,7 @@
                 "shape": "cube"
             },
             "color": "darkgray",
-            "position": [-1, 0.5, 2]
+            "position": [0, 0.5, 0]
         },
 
         {
