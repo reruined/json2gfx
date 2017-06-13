@@ -12,7 +12,10 @@ export default {
     identity,
     fromEulerAngles,
     multiply,
-    getColumn
+    getColumn,
+    rotationX,
+    rotationY,
+    rotationZ,
 }
 
 function parse(value) {

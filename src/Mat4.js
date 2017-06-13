@@ -1,4 +1,5 @@
 import Type from './Type.js';
+import Mat3 from './Mat3.js';
 import Vec3 from './Vec3.js';
 import Vec4 from './Vec4.js';
 
@@ -16,6 +17,7 @@ export default {
     lookAt,
     setTranslation,
     orthographic,
+    rotationY,
 }
 
 function setTranslation(m, v) {
@@ -176,4 +178,8 @@ function orthographic(left, right, bottom, top, near, far) {
     ]);
 
     return identity();
+}
+
+function rotationY(angle) {
+    return fromMat3(Mat3.rotationY(angle));
 }

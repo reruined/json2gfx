@@ -1,26 +1,18 @@
 {
     "background": 0.8,
     "shader": "ambient",
-    "camera": "main-camera",
+    "activeCamera": "main-camera",
 
     "children": [
 
         {
             "name": "main-camera",
             "type": "camera",
-            "position": [5, 10, 10],
+            "position": [5, 5, 7],
             "camera": {
-                "type": "orthographic",
-                "fov": 45,
-                "lookAt": [0, 0.0, 0],
-                "box": {
-                    "left": -10,
-                    "right": 10,
-                    "bottom": -10,
-                    "top": 10,
-                    "near": -50,
-                    "far": 50
-                }
+                "type": "perspective",
+                "fov": 60,
+                "lookAt": [0.5, 0.0, -2]
             }
         },
 
@@ -28,18 +20,31 @@
             "name": "floor",
             "geometry": {
                 "shape": "plane",
-                "size": 4
+                "size": 0
             },
             "color": "white",
-            "orientation": [-90, 0, 0]
+            "orientation": [-90, 0, 0],
+            "shadow": false
         },
 
         {
+            "name": "cube",
             "geometry": {
                 "shape": "cube"
             },
             "color": "darkgray",
+            "orientation": [0, 0, 0],
             "position": [0, 0.5, 0]
+        },
+
+        {
+            "name": "cube2",
+            "geometry": {
+                "shape": "cube"
+            },
+            "color": "darkgray",
+            "orientation": [0, 0, 0],
+            "position": [0.5, 0.5, -3]
         },
 
         {

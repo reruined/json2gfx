@@ -59,6 +59,7 @@ function json2gfx(canvas, model) {
     Tree
         .findAll(tree, node => 'light' in node)
         .forEach(node => renderLightNode(gl, node));
+
 }
 
 function renderGeometryNode(gl, node) {
@@ -97,6 +98,7 @@ function renderLightNode(gl, lightNode) {
         }));
 
     geometryInstances.forEach(instance => {
+        gl.enable(gl.BLEND);
         renderCommand(gl, {
             program: lightProgram,
             mesh: instance.mesh,
@@ -112,6 +114,36 @@ function renderLightNode(gl, lightNode) {
                 lightCutoff: lightNode.light.cutoff || 0,
                 lightIntensity: lightNode.light.intensity,
                 lightDirection: Vec3.normalize(Vec3.parse(lightNode.light.direction))
+            }
+        });
+
+        let lightPos = Vec3.parse(lightNode.light.direction);
+        lightPos = Vec3.normalize(lightPos);
+        lightPos = Vec3.scale(lightPos, -1);
+        lightPos = Vec3.scale(lightPos, Number.MAX_SAFE_INTEGER);
+        let light = new Float32Array([
+            lightPos[1],  0,            0,           0,
+            -lightPos[0], 0, -lightPos[2],          -1,
+            0,            0,  lightPos[1],           0,
+            0,            0,            0, lightPos[1],
+        ]);
+
+        let t = Mat4.identity();
+        t = Mat4.multiply(instance.camera.projection, t);
+        t = Mat4.multiply(instance.camera.view, t);
+        t = Mat4.multiply(light, t);
+        t = Mat4.multiply(instance.transform, t);
+
+        gl.disable(gl.BLEND);
+        renderCommand(gl, {
+            program: getProgram(gl, lightNode),
+            mesh: instance.mesh,
+            mode: gl.TRIANGLES,
+            uniforms: {
+                world: t,
+                view: Mat4.identity(),
+                projection: Mat4.identity(),
+                color: Vec4.parse(0.0)
             }
         });
     });
@@ -184,7 +216,7 @@ function getProgram(gl, node) {
 }
 
 function getCamera(gl, node) {
-    const cameraName = Tree.findValueReverse(node, item => item.camera);
+    const cameraName = Tree.findValueReverse(node, item => item.activeCamera);
     const cameraNode = Tree.findByName(Tree.getRoot(node), cameraName);
     const view = createInverseMatrix(Mat4.lookAt(cameraNode.position, cameraNode.camera.lookAt, [0, 1, 0]));
     const projection = cameraNode.camera.type === 'perspective' ?
@@ -238,7 +270,7 @@ function resolveTransform(node) {
     const rotation = resolveOrientation(node);
     const position = resolvePosition(node);
 
-    const transform = Mat4.setTranslation(Mat4.fromMat3(rotation), position);
+    let transform = Mat4.setTranslation(Mat4.fromMat3(rotation), position);
     return transform;
 }
 

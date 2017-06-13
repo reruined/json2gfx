@@ -11,6 +11,7 @@ export default {
     cross,
     zero,
     transform,
+    scale,
 };
 
 function parse(value) {
