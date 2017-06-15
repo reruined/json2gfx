@@ -200,8 +200,12 @@ function getLocalRotationMatrix(object) {
 
 function isShadowCaster(object) {
     console.assert(Type.isObject(object));
-
     return 'shadow' in object ? object.shadow : true;
+}
+
+function getIntensity(object) {
+    console.assert(Type.isObject(object));
+    return 'intensity' in object ? object.intensity : 1;
 }
 
 function isVisible(object, defaultValue = true) {
@@ -326,7 +330,7 @@ function drawLight(gl, light, props = {}) {
             world: getGlobalTransform(object),
             lightDirection: Vec3.normalize(Vec3.parse(light.direction)),
             lightColor: getColor(light),
-            lightIntensity: 1
+            lightIntensity: getIntensity(light)
         });
 
         gl.enable(gl.BLEND);

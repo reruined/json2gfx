@@ -76,8 +76,8 @@
                     "light": {
                         "type": "directional",
                         "color": "white",
-                        "intensity": 2,
-                        "direction": [1, -1, 1]
+                        "intensity": 1,
+                        "direction": [1, -1, 0.4]
                     }
                 }
             }
