@@ -21,6 +21,9 @@ import gPointlightFragSrc from './pointlight.frag';
 import gSunlightVertSrc from './sunlight.vert';
 import gSunlightFragSrc from './sunlight.frag';
 
+import gShadowVertSrc from './shadow.vert';
+import gShadowFragSrc from './shadow.frag';
+
 const programs = {
     ambient: {
         vsSrc: gAmbientVertSrc,
@@ -34,6 +37,10 @@ const programs = {
         vsSrc: gSunlightVertSrc,
         fsSrc: gSunlightFragSrc,
     },
+    shadow: {
+        vsSrc: gShadowVertSrc,
+        fsSrc: gShadowFragSrc
+    }
 };
 
 export default json2gfx;
@@ -77,6 +84,21 @@ function json2gfx(canvas, model) {
 
     objectsWithLight
         .forEach(object => {
+
+            gl.colorMask(false, false, false, false);
+            objectsWithGeometry
+                .filter(isShadowCaster)
+                .forEach(shadowCaster => {
+                    drawProjectedShadow(gl, object.light, {
+                        shadowCaster: shadowCaster,
+                        uniforms: {
+                            view: camera.view,
+                            projection: camera.projection
+                        }
+                    });
+                });
+            gl.colorMask(true, true, true, true);
+
             drawLight(gl, object.light, {
                 shader: 'sunlight',
                 receivers: objectsWithGeometry,
@@ -174,6 +196,12 @@ function getLocalRotationMatrix(object) {
 
     const angles = Vec3.parse(object.orientation).map(degToRad);
     return Mat3.fromEulerAngles(angles);
+}
+
+function isShadowCaster(object) {
+    console.assert(Type.isObject(object));
+
+    return 'shadow' in object ? object.shadow : true;
 }
 
 function isVisible(object, defaultValue = true) {
@@ -307,10 +335,6 @@ function drawLight(gl, light, props = {}) {
             uniforms: uniforms,
         });
         gl.disable(gl.BLEND);
-
-        if(object.shadow) {
-            drawProjectedShadow(gl, light, Object.assign({ receiver: object }, props));
-        }
     });
 }
 
@@ -328,10 +352,10 @@ function drawProjectedShadow(gl, light, props = {}) {
 
     let t = Mat4.identity();
     t = Mat4.multiply(lightMatrix, t);
-    t = Mat4.multiply(getGlobalTransform(props.receiver), t);
+    t = Mat4.multiply(getGlobalTransform(props.shadowCaster), t);
 
-    drawGeometry(gl, props.receiver.geometry, {
-        shader: 'ambient',
+    drawGeometry(gl, props.shadowCaster.geometry, {
+        shader: 'shadow',
         uniforms: {
             world: t,
             view: props.uniforms.view,
