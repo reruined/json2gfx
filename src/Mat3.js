@@ -16,6 +16,7 @@ export default {
     rotationX,
     rotationY,
     rotationZ,
+    scale,
 }
 
 function parse(value) {
@@ -116,4 +117,12 @@ function getColumn(m, col) {
         m[1 * ROW_LENGTH + col],
         m[2 * ROW_LENGTH + col],
     );
+}
+
+function scale(v) {
+    return new Float32Array([
+        v[0], 0, 0,
+        0, v[1], 0,
+        0, 0, v[2],
+    ]);
 }

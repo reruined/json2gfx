@@ -7,6 +7,7 @@ export default {
     isNull,
     isObject,
     isNumber,
+    isBoolean,
 };
 
 function getName(value) {
@@ -47,4 +48,8 @@ function isObject(value) {
 
 function isNumber(value) {
     return typeof value === 'number';
+}
+
+function isBoolean(value) {
+    return typeof value === 'boolean';
 }

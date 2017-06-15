@@ -1,9 +1,9 @@
 import './style.css';
 import json2gfx from './json2gfx.js';
-import gModel from './model.json';
+import gModel from './weird-canyon2.json';
 
 if(module.hot) {
-    module.hot.accept('./model.json', render);
+    module.hot.accept('./weird-canyon2.json', render);
 }
 
 const gCanvas = document.querySelector('canvas');

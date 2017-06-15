@@ -10,6 +10,7 @@ export default {
     dot,
     cross,
     zero,
+    one,
     transform,
     scale,
 };
@@ -22,6 +23,11 @@ function parse(value) {
     if(Type.isArray(value)) {
         return fromValues(...value);
     }
+
+    if(Type.isNumber(value)) {
+        return fromValues(value, value, value);
+    }
+
 
     if(Type.isUndefined(value)) {
         return zero();
@@ -72,6 +78,10 @@ function fromValues(x = 0, y = 0, z = 0) {
 
 function zero() {
     return fromValues(0, 0, 0);
+}
+
+function one() {
+    return fromValues(1, 1, 1);
 }
 
 function dot(v1, v2) {
