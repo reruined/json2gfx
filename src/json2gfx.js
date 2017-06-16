@@ -385,16 +385,24 @@ function drawMesh(gl, mesh, shader, {uniforms = {}}) {
     console.assert(mesh);
     console.assert(shader);
 
-    shader = getProgram2(gl, shader);
+    const compiledShader = getProgram2(gl, shader);
 
-    gl.useProgram(shader);
+    gl.useProgram(compiledShader);
     Object
         .keys(uniforms)
         .map(key => ({
-            location: gl.getUniformLocation(shader, key),
+            location: gl.getUniformLocation(compiledShader, key),
+            key: key,
             value: uniforms[key]
         }))
-        .forEach(pair => commitUniform(gl, pair.location, pair.value));
+        .forEach(triple => {
+            if(!triple.location) {
+                console.warn(`Missing uniform '${triple.key}' in shader '${shader}'`);
+                return;
+            }
+
+            commitUniform(gl, triple.location, triple.value)
+        });
 
     mesh.layout.forEach((item, index) => {
         gl.bindBuffer(gl.ARRAY_BUFFER, item.buffer);

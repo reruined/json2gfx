@@ -14,7 +14,7 @@ function compile(gl, type, source) {
         throw new Error(`Failed to compile shader:\n${info}`);
     }
 
-    console.warn(`Shader.compile(${type}, ...) succeeded`);
+    console.log(`Shader.compile(${type}, ...) succeeded`);
     return glShader;
 }
 
