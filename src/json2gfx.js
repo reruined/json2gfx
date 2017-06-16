@@ -61,10 +61,30 @@ function json2gfx(canvas, model) {
     gl.clearColor(...backColor);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
+    const objectsWithGenerator = ObjectUtils
+        .findAll(root.scene, item => 'generator' in item)
+        .filter(isVisible);
+    objectsWithGenerator
+        .forEach(object => {
+            object.children = object.children || {};
+            const generator = object.generator;
+            const children = object.children;
+            const sourceSize = 1;
+            const min = Vec3.parse(generator.min);
+            const max = Vec3.parse(generator.max);
+            for(let i = 0; i < generator.count; i++) {
+                const position = randomVec3(min, max);
+                object.children[i] = {
+                    position: position,
+                    geometry: generator.source,
+                };
+            }
+        });
+
     const camera = createCamera(root.camera, gl.canvas.width / gl.canvas.height);
     const objectsWithGeometry = ObjectUtils
         .findAll(root.scene, item => 'geometry' in item)
-        .filter(object => isVisible(object));
+        .filter(isVisible);
 
     objectsWithGeometry
         .forEach(object => {
@@ -80,7 +100,7 @@ function json2gfx(canvas, model) {
 
     const objectsWithLight = ObjectUtils
         .findAll(root.scene, item => 'light' in item)
-        .filter(object => isVisible(object));
+        .filter(isVisible);
 
     objectsWithLight
         .forEach(object => {
@@ -152,6 +172,24 @@ function json2gfx(canvas, model) {
 */
 }
 
+function lerp(min, max, interpolator) {
+    console.assert(interpolator >= 0);
+    console.assert(interpolator <= 1);
+    return min + ((max - min) * interpolator);
+}
+
+function randomReal(min, max) {
+    return lerp(min, max, Math.random());
+}
+
+function randomVec3(min, max) {
+    return Vec3.fromValues(
+        randomReal(min[0], max[0]),
+        randomReal(min[1], max[1]),
+        randomReal(min[2], max[2])
+    );
+}
+
 function getGlobalTransform(object) {
     console.assert(Type.isObject(object));
 
@@ -208,11 +246,9 @@ function getIntensity(object) {
     return 'intensity' in object ? object.intensity : 1;
 }
 
-function isVisible(object, defaultValue = true) {
+function isVisible(object) {
     console.assert(Type.isObject(object));
-    console.assert(Type.isBoolean(defaultValue));
-
-    return 'visible' in object ? object.visible : defaultValue;
+    return 'visible' in object ? object.visible : true;
 }
 
 function createCamera(object, ar, convertFovToRadians = true) {
