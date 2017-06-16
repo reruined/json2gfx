@@ -22,7 +22,7 @@ import gSunlightFragSrc from './sunlight.frag';
 import gShadowVertSrc from './shadow.vert';
 import gShadowFragSrc from './shadow.frag';
 
-const programs = {
+const gPrograms = {
     ambient: {
         vsSrc: gAmbientVertSrc,
         fsSrc: gAmbientFragSrc,
@@ -364,7 +364,6 @@ function drawProjectedShadow(gl, light, props = {}) {
             world: t,
             view: props.uniforms.view,
             projection: props.uniforms.projection,
-            albedo: Vec4.parse(0)
         }
     });
 }
@@ -385,7 +384,7 @@ function drawMesh(gl, mesh, shader, {uniforms = {}}) {
     console.assert(mesh);
     console.assert(shader);
 
-    const compiledShader = getProgram2(gl, shader);
+    const compiledShader = getProgram(gl, shader);
 
     gl.useProgram(compiledShader);
     Object
@@ -531,17 +530,33 @@ function createGlMesh(gl, mesh) {
     };
 }
 
-function getProgram2(gl, programName) {
-    const programSrc = programs[programName];
+function compileShader(gl, vsSrc, fsSrc) {
+    console.assert(gl);
+    console.assert(Type.isString(vsSrc));
+    console.assert(Type.isString(fsSrc));
 
-    // prepare shader
-    const vs = Shader.compile(gl, gl.VERTEX_SHADER, programSrc.vsSrc);
-    const fs = Shader.compile(gl, gl.FRAGMENT_SHADER, programSrc.fsSrc);
+    const vs = Shader.compile(gl, gl.VERTEX_SHADER, vsSrc);
+    const fs = Shader.compile(gl, gl.FRAGMENT_SHADER, fsSrc);
     const program = ShaderProgram.compile(gl, vs, fs);
     gl.bindAttribLocation(program, 0, 'position');
     gl.bindAttribLocation(program, 1, 'color');
-    gl.useProgram(program);
+
     return program;
+}
+
+function getProgram(gl, name) {
+    console.assert(gl);
+    console.assert(Type.isString(name));
+
+    if(!gPrograms[name].glProgram) {
+        gPrograms[name].glProgram = compileShader(
+            gl,
+            gPrograms[name].vsSrc,
+            gPrograms[name].fsSrc
+        );
+    }
+
+    return gPrograms[name].glProgram;
 }
 
 function degToRad(degrees) {
