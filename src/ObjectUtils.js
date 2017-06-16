@@ -29,7 +29,9 @@ function findAll(object, predicate, visitedObjects = [], container = []) {
     }
     visitedObjects.push(object);
 
-    Object.values(object)
+    Object.keys(object)
+        .filter(key => key.charAt(0) !== '_')
+        .map(key => object[key])
         .filter(Type.isObject)
         .filter(item => !visitedObjects.includes(item))
         .forEach(item => findAll(item, predicate, visitedObjects, container));

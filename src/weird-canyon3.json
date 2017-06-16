@@ -32,20 +32,25 @@
             "shape": "cube",
             "albedo": "navajowhite",
             "scale": [0.2, 0.2, 0.2],
-            "position": [0, 0.025, 0]
+            "position": [0, 0.1, 0]
         },
 
-        "big-rock": {
+        "bigrock": {
             "shape": "cube",
             "albedo": "navajowhite",
-            "scale": [0.8, 0.3, 0.8],
+            "scale": [0.8, 0.5, 0.8],
             "position": [0, 0.15, 0]
         }
     },
 
     "templates": {
         "rock": {
+            "shadow": false,
             "geometry": "@geometries.rock"
+        },
+        "bigrock": {
+            "shadow": false,
+            "geometry": "@geometries.bigrock"
         }
     },
 
@@ -83,30 +88,48 @@
                     "position": [10, 0, -15]
                 },
 
-                "big-rocks": {
+                "rocks-left": {
                     "generator": {
-                        "source": "@geometries.big-rock",
-                        "min": [-20, 0, -200],
-                        "max": [50, 0, 50],
+                        "template": "@templates.rock",
+                        "min": {
+                            "position": [-30, 0, -200],
+                            "orientation": [0, 0, 0]
+                        },
+                        "max": {
+                            "position": [-6.3, 0, 50],
+                            "orientation": [270, 270, 270]
+                        },
+                        "count": 1000
+                    }
+                },
+
+                "rocks-right": {
+                    "generator": {
+                        "template": "@templates.rock",
+                        "min": {
+                            "position": [-4, 0, -200],
+                            "orientation": [0, 0, 0]
+                        },
+                        "max": {
+                            "position": [50, 4, 50],
+                            "orientation": [270, 270, 270]
+                        },
+                        "count": 2000
+                    }
+                },
+
+                "bigrocks-right": {
+                    "generator": {
+                        "template": "@templates.bigrock",
+                        "min": {
+                            "position": [-4, 0, -200],
+                            "orientation": [0, 0, 0]
+                        },
+                        "max": {
+                            "position": [50, 0, 50],
+                            "orientation": [270, 270, 270]
+                        },
                         "count": 500
-                    }
-                },
-
-                "rocks": {
-                    "generator": {
-                        "source": "@geometries.rock",
-                        "min": [-4, 0, -200],
-                        "max": [50, 0, 50],
-                        "count": 2000
-                    }
-                },
-
-                "rocks-left-of-road": {
-                    "generator": {
-                        "source": "@geometries.rock",
-                        "min": [-20, 0, -200],
-                        "max": [-6.3, 0, 50],
-                        "count": 2000
                     }
                 },
 

@@ -41,6 +41,8 @@ const gPrograms = {
     }
 };
 
+const gGlMeshes = new WeakMap();
+
 export default json2gfx;
 
 function json2gfx(canvas, model) {
@@ -52,8 +54,8 @@ function json2gfx(canvas, model) {
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
     let root = model;
-    root = resolveParents(root);
-    root = resolveReferences(root);
+    resolveParents(root);
+    resolveReferences(root);
 
     const backColor = parseColor(root.backColor);
     gl.clearColor(...backColor);
@@ -66,15 +68,21 @@ function json2gfx(canvas, model) {
         .forEach(object => {
             object.children = object.children || {};
             const generator = object.generator;
-            const min = Vec3.parse(generator.min);
-            const max = Vec3.parse(generator.max);
             for(let i = 0; i < generator.count; i++) {
-                const position = randomVec3(min, max);
-                object.children[i] = {
-                    position: position,
-                    geometry: generator.source,
-                };
+                const position = randomVec3(generator.min.position, generator.max.position);
+                const orientation = randomVec3(generator.min.orientation, generator.max.orientation);
+                object.children[i] = Object.assign(
+                    {},
+                    generator.template,
+                    {
+                        position,
+                        orientation,
+                        _parent: object
+                    }
+                );
             }
+
+            delete object.generator;
         });
 
     const camera = createCamera(root.camera, gl.canvas.width / gl.canvas.height);
@@ -200,8 +208,8 @@ function getGlobalPosition(object) {
         return Vec3.zero();
     }
 
-    const globalParentPosition = getGlobalPosition(object.parent);
-    const globalParentRotation = getGlobalRotationMatrix(object.parent);
+    const globalParentPosition = getGlobalPosition(object._parent);
+    const globalParentRotation = getGlobalRotationMatrix(object._parent);
     const localPosition = getLocalPosition(object);
 
     return Vec3.add(
@@ -215,7 +223,7 @@ function getGlobalRotationMatrix(object) {
         return Mat3.identity();
     }
 
-    const globalParentRotation = getGlobalRotationMatrix(object.parent);
+    const globalParentRotation = getGlobalRotationMatrix(object._parent);
     const localRotation = getLocalRotationMatrix(object);
     return Mat3.multiply(globalParentRotation, localRotation);
 }
@@ -273,7 +281,7 @@ function resolveParents(object, parent = null) {
         .filter(Type.isObject)
         .forEach(child => resolveParents(child, object));
 
-    object.parent = parent;
+    object._parent = parent;
 
     return object;
 }
@@ -295,7 +303,7 @@ function resolveReferences(value, root = value) {
     if(Type.isObject(value)) {
         Object
             .keys(value)
-            .filter(key => key !== 'parent')
+            .filter(key => key.charAt(0) !== '_')
             .forEach(key => value[key] = resolveReferences(value[key], root));
     }
 
@@ -368,13 +376,20 @@ function drawProjectedShadow(gl, light, props = {}) {
     });
 }
 
+function getGlMeshFromGeometry(gl, geometry) {
+    if(!gGlMeshes.has(geometry)) {
+        gGlMeshes.set(geometry, createGlMesh(gl, Mesh.fromGeometry(geometry)));
+    }
+    return gGlMeshes.get(geometry);
+}
+
 function drawGeometry(gl, geometry, props = {}) {
     console.assert(gl);
     console.assert(geometry);
 
     props.uniforms.albedo = props.uniforms.albedo || parseColor(geometry.albedo);
 
-    const mesh = createGlMesh(gl, Mesh.fromGeometry(geometry));
+    const mesh = getGlMeshFromGeometry(gl, geometry);
     const shader = props.shader || 'ambient';
     drawMesh(gl, mesh, shader, props);
 }
@@ -396,7 +411,7 @@ function drawMesh(gl, mesh, shader, {uniforms = {}}) {
         }))
         .forEach(triple => {
             if(!triple.location) {
-                console.warn(`Missing uniform '${triple.key}' in shader '${shader}'`);
+                // console.warn(`Missing uniform '${triple.key}' in shader '${shader}'`);
                 return;
             }
 
@@ -495,6 +510,8 @@ function renderLightNode(gl, lightNode) {
 */
 
 function createGlMesh(gl, mesh) {
+    console.log('createGlMesh()');
+
     // prepare position buffer
     const positionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
