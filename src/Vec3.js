@@ -92,6 +92,6 @@ function transform(v, m) {
     return fromValues(
         dot(v, Mat3.getColumn(m, 0)),
         dot(v, Mat3.getColumn(m, 1)),
-        dot(v, Mat3.getColumn(m, 2)),
+        dot(v, Mat3.getColumn(m, 2))
     );
 }

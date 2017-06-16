@@ -13,7 +13,7 @@ function resolvePath(object, path) {
         .split('.');
 
     const value = keys.reduce(
-        (object, key) => { return object[key] },
+        (object, key) => object[key],
         object
     );
 

@@ -7,9 +7,7 @@ import Mat4 from './Mat4.js';
 import Shader from './Shader.js';
 import ShaderProgram from './ShaderProgram.js';
 import Type from './Type.js';
-import Tree from './Tree.js';
 import Mesh from './Mesh.js';
-import Camera from './Camera.js';
 import ObjectUtils from './ObjectUtils.js';
 
 import gAmbientVertSrc from './ambient.vert';
@@ -68,8 +66,6 @@ function json2gfx(canvas, model) {
         .forEach(object => {
             object.children = object.children || {};
             const generator = object.generator;
-            const children = object.children;
-            const sourceSize = 1;
             const min = Vec3.parse(generator.min);
             const max = Vec3.parse(generator.max);
             for(let i = 0; i < generator.count; i++) {
@@ -306,38 +302,6 @@ function resolveReferences(value, root = value) {
     return value;
 }
 
-function createMatrixFromObject(object) {
-    console.assert(object);
-
-    const translation = Vec3.zero();
-    if(object.translation) {
-        if(object.translation.x) {
-            translation[0] = object.translation.x;
-        }
-        if(object.translation.y) {
-            translation[1] = object.translation.y;
-        }
-        if(object.translation.z) {
-            translation[2] = object.translation.z;
-        }
-    }
-
-    const rotation = Vec3.zero();
-    if(object.rotation) {
-        if(object.rotation.x) {
-            rotation[0] = degToRad(object.rotation.x);
-        }
-        if(object.rotation.y) {
-            rotation[1] = degToRad(object.rotation.y);
-        }
-        if(object.rotation.z) {
-            rotation[2] = degToRad(object.rotation.z);
-        }
-    }
-
-    return Mat4.multiply(Mat4.fromEulerAngles(rotation), Mat4.translation(translation));
-}
-
 function commitUniform(gl, location, value) {
     console.assert(location);
     console.assert(value);
@@ -437,7 +401,7 @@ function drawMesh(gl, mesh, shader, {uniforms = {}}) {
                 return;
             }
 
-            commitUniform(gl, triple.location, triple.value)
+            commitUniform(gl, triple.location, triple.value);
         });
 
     mesh.layout.forEach((item, index) => {
@@ -452,7 +416,7 @@ function drawMesh(gl, mesh, shader, {uniforms = {}}) {
         );
         gl.enableVertexAttribArray(index);
         gl.bindBuffer(gl.ARRAY_BUFFER, null);
-    })
+    });
 
     // draw
     gl.drawArrays(gl.TRIANGLES, 0, mesh.vertexCount);
@@ -464,28 +428,7 @@ function drawMesh(gl, mesh, shader, {uniforms = {}}) {
     gl.useProgram(null);
 }
 
-function renderGeometryNode(gl, node) {
-    const mesh = getMesh(gl, node);
-    const program = getProgram(gl, node);
-    const camera = getCamera(gl, node);
-    const color = getColor(node);
-    const transform = resolveTransform(node);
-
-    if(mesh) {
-        renderCommand(gl, {
-            program,
-            mesh,
-            mode: gl.TRIANGLES,
-            uniforms: {
-                world: transform,
-                view: camera.view,
-                projection: camera.projection,
-                color: new Float32Array(color)
-            }
-        });
-    }
-}
-
+/*
 function renderLightNode(gl, lightNode) {
     const lightProgram = getProgram(gl, lightNode);
     const lightColor = getColor(lightNode);
@@ -550,49 +493,7 @@ function renderLightNode(gl, lightNode) {
         });
     });
 }
-
-function getGeometry2(node) {
-    console.assert(node);
-
-    if(!node.geometry) {
-        return null;
-    }
-
-    if(Type.isString(node.geometry)) {
-
-    }
-}
-
-function validateProperty() {
-    return true;
-}
-
-function getProperty(root, node, propertyKey) {
-    console.assert(Type.isObject(node));
-    console.assert(Type.isString(propertyKey));
-
-    if(!validateProperty(node, propertyKey)) {
-        return getDefaultProperty(propertyKey);
-    }
-
-    const value = node[propertyKey];
-    if(Type.isString(value) && value.charAt(0) === '#') {
-        const path = value.slice(value.indexOf('#') + 1);
-        return ObjectUtils.resolvePath(root, path);
-    }
-
-    return node[propertyKey];
-}
-
-function getGeometry(gl, node) {
-    console.assert(gl && node);
-
-    if(!node.geometry) {
-        return null;
-    }
-
-    return Mesh.fromGeometry(node.geometry);
-}
+*/
 
 function createGlMesh(gl, mesh) {
     // prepare position buffer
@@ -630,47 +531,6 @@ function createGlMesh(gl, mesh) {
     };
 }
 
-function getMesh(gl, node) {
-    const geometry = getGeometry(gl, node);
-    if(!geometry) {
-        return null;
-    }
-
-    // prepare position buffer
-    const positionBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, geometry.positions.data, gl.STATIC_DRAW);
-    gl.bindBuffer(gl.ARRAY_BUFFER, null);
-
-    // prepare normal buffer
-    const normalBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, geometry.normals.data, gl.STATIC_DRAW);
-    gl.bindBuffer(gl.ARRAY_BUFFER, null);
-
-    return {
-        layout: [
-            {
-                buffer: positionBuffer,
-                type: gl.FLOAT,
-                elementLength: geometry.positions.itemSize,
-                normalize: false,
-                stride: 0,
-                offset: 0
-            },
-            {
-                buffer: normalBuffer,
-                type: gl.FLOAT,
-                elementLength: geometry.normals.itemSize,
-                normalize: true,
-                stride: 0,
-                offset: 0,
-            }
-        ],
-        vertexCount: geometry.positions.data.length / geometry.positions.itemSize
-    };
-}
-
 function getProgram2(gl, programName) {
     const programSrc = programs[programName];
 
@@ -684,149 +544,13 @@ function getProgram2(gl, programName) {
     return program;
 }
 
-function getProgram(gl, node) {
-    const programName = Tree.findValueReverse(node, item => item.shader);
-    const programSrc = programs[programName];
-
-    // prepare shader
-    const vs = Shader.compile(gl, gl.VERTEX_SHADER, programSrc.vsSrc);
-    const fs = Shader.compile(gl, gl.FRAGMENT_SHADER, programSrc.fsSrc);
-    const program = ShaderProgram.compile(gl, vs, fs);
-    gl.bindAttribLocation(program, 0, 'position');
-    gl.bindAttribLocation(program, 1, 'color');
-    gl.useProgram(program);
-    return program;
-}
-
-function getCamera(gl, node) {
-    const cameraName = Tree.findValueReverse(node, item => item.activeCamera);
-    const cameraNode = Tree.findByName(Tree.getRoot(node), cameraName);
-    const view = createInverseMatrix(Mat4.lookAt(cameraNode.position, cameraNode.camera.lookAt, [0, 1, 0]));
-    const projection = cameraNode.camera.type === 'perspective' ?
-        createPerspectiveProjection(
-            gl.canvas.width / gl.canvas.height,
-            degToRad(cameraNode.camera.fov),
-            0.1,
-            100
-        ) :
-        Mat4.orthographic(
-            cameraNode.camera.box.left,
-            cameraNode.camera.box.right,
-            cameraNode.camera.box.bottom,
-            cameraNode.camera.box.top,
-            cameraNode.camera.box.near,
-            cameraNode.camera.box.far,
-        );
-
-    return {
-        view,
-        projection
-    };
-}
-
 function degToRad(degrees) {
     return degrees * (Math.PI / 180);
-}
-
-function resolveOrientation(node) {
-    if(!node) {
-        return Mat3.identity();
-    }
-
-    const parentOrientation = resolveOrientation(node.parent);
-    const localOrientation = getOrientation(node);
-    return Mat3.multiply(parentOrientation, localOrientation);
-}
-
-function resolvePosition(node) {
-    if(!node) {
-        return Vec3.zero();
-    }
-
-    const parentPosition = resolvePosition(node.parent);
-    const parentRotation = resolveOrientation(node.parent);
-    const localPosition = Vec3.transform(getPosition(node), parentRotation);
-    return Vec3.add(parentPosition, localPosition);
-}
-
-function resolveTransform(node) {
-    const rotation = resolveOrientation(node);
-    const position = resolvePosition(node);
-
-    let transform = Mat4.setTranslation(Mat4.fromMat3(rotation), position);
-    return transform;
-}
-
-function getOrientation(node) {
-    console.assert(node);
-
-    const orientation = Vec3.parse(node.orientation).map(degToRad);
-    return Mat3.fromEulerAngles(orientation);
-}
-
-function getBackgroundColor(node) {
-    console.assert(node);
-    return parseColor(node.background);
 }
 
 function getColor(node) {
     console.assert(node);
     return parseColor(node.color);
-}
-
-function getPosition(node) {
-    console.assert(node);
-    return Vec3.parse(node.position);
-}
-
-function renderCommand(gl, command) {
-    // commit unforms to program
-    console.assert(gl.isProgram(command.program));
-
-    gl.useProgram(command.program);
-    Object.keys(command.uniforms)
-        .map(key => ({ key, value: command.uniforms[key] }))
-        .forEach(uniform => {
-            const location = gl.getUniformLocation(command.program, uniform.key);
-            if(Type.isNumber(uniform.value)) {
-                gl.uniform1f(location, uniform.value);
-            }
-            if(uniform.value.length === 16) {
-                gl.uniformMatrix4fv(location, false, uniform.value);
-            }
-            if(uniform.value.length === 4) {
-                gl.uniform4fv(location, uniform.value);
-            }
-            if(uniform.value.length === 3) {
-                gl.uniform3fv(location, uniform.value);
-            }
-        });
-    gl.useProgram(null);
-
-    // assign mesh vertices to program
-    gl.useProgram(command.program);
-    command.mesh.layout.forEach((item, index) => {
-        gl.bindBuffer(gl.ARRAY_BUFFER, item.buffer);
-        gl.vertexAttribPointer(
-            index,
-            item.elementLength,
-            item.type,
-            item.normalize,
-            item.stride,
-            item.offset
-        );
-        gl.enableVertexAttribArray(index);
-        gl.bindBuffer(gl.ARRAY_BUFFER, null);
-    })
-
-    // draw
-    gl.drawArrays(command.mode, 0, command.mesh.vertexCount);
-
-    // reset state
-    command.mesh.layout.forEach((item, index) => {
-        gl.disableVertexAttribArray(index);
-    });
-    gl.useProgram(null);
 }
 
 function parseColor(value) {

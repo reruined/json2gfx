@@ -1,12 +1,11 @@
-import Type from './Type.js';
 import Vec3 from './Vec3.js';
 import Mat3 from './Mat3.js';
 
 export default {
     fromGeometry
-}
+};
 
-function fromGeometry(geometry, convertAnglesToRadians = true) {
+function fromGeometry(geometry) {
     console.assert(geometry);
 
     let mesh = null;

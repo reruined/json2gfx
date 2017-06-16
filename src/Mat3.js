@@ -17,7 +17,7 @@ export default {
     rotationY,
     rotationZ,
     scale,
-}
+};
 
 function parse(value) {
     if(Type.isArray(value) && value.length === 3) {
@@ -107,7 +107,7 @@ function getRow(m, row) {
     return Vec3.fromValues(
         m[row * ROW_LENGTH + 0],
         m[row * ROW_LENGTH + 1],
-        m[row * ROW_LENGTH + 2],
+        m[row * ROW_LENGTH + 2]
     );
 }
 
@@ -115,7 +115,7 @@ function getColumn(m, col) {
     return Vec3.fromValues(
         m[0 * ROW_LENGTH + col],
         m[1 * ROW_LENGTH + col],
-        m[2 * ROW_LENGTH + col],
+        m[2 * ROW_LENGTH + col]
     );
 }
 

@@ -16,7 +16,7 @@ function fromObject(object, parent = null) {
         {
             parent,
         },
-        object,
+        object
     );
 
     node.children = (node.children || [])

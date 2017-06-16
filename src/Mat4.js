@@ -1,5 +1,4 @@
 import Type from './Type.js';
-import Mat3 from './Mat3.js';
 import Vec3 from './Vec3.js';
 import Vec4 from './Vec4.js';
 
@@ -21,7 +20,7 @@ export default {
     perspective,
     rotationY,
     inverse,
-}
+};
 
 function perspective(ar, fov, near, far) {
     console.assert(far > near);
@@ -169,7 +168,7 @@ function getRow(m, row) {
         m[row * ROW_LENGTH + 0],
         m[row * ROW_LENGTH + 1],
         m[row * ROW_LENGTH + 2],
-        m[row * ROW_LENGTH + 3],
+        m[row * ROW_LENGTH + 3]
     );
 }
 
@@ -178,7 +177,7 @@ function getColumn(m, col) {
         m[0 * ROW_LENGTH + col],
         m[1 * ROW_LENGTH + col],
         m[2 * ROW_LENGTH + col],
-        m[3 * ROW_LENGTH + col],
+        m[3 * ROW_LENGTH + col]
     );
 }
 
@@ -200,12 +199,6 @@ function orthographic(left, right, bottom, top, near, far) {
         0, 0, -2 / depth, 0,
         -((right + left) / width), -((top + bottom) / height), -((far + near) / depth), 1,
     ]);
-
-    return identity();
-}
-
-function rotationY(angle) {
-    return fromMat3(Mat3.rotationY(angle));
 }
 
 function inverse(m) {
