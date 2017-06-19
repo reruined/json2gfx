@@ -137,48 +137,6 @@ function json2gfx(canvas, model) {
                 }
             });
         });
-    /*
-    // get scene root (this decides what will be rendered)
-    const sceneRoot = getProperty(root, root, 'scene');
-
-    // get first camera
-    //const objectWithCamera = ObjectUtils.find(sceneRoot, item => 'camera' in item);
-
-    // render all geometries
-    const objectsWithGeometry = ObjectUtils.findAll(sceneRoot, item => 'geometry' in item);
-    objectsWithGeometry.forEach(object => {
-        const geometry = getProperty(root, object, 'geometry');
-        const transform = getProperty(root, object, 'transform');
-        // const camera = getProperty(root, objectWithCamera, 'camera');
-
-        drawGeometry(gl, geometry, {
-            shader: 'ambient',
-            uniforms: {
-                projection: createPerspectiveProjection(1, Math.PI / 2, 0.1, 100),
-                view: Mat4.identity(),
-                world: createMatrixFromObject(transform)
-            }
-        });
-    });
-    */
-
-    /*
-    const tree = Tree.fromObject(model);
-
-    // render geometries
-    gl.disable(gl.BLEND);
-    Tree
-        .findAll(tree, node => 'geometry' in node)
-        .forEach(node => renderGeometryNode(gl, node));
-
-    // render lights
-    gl.enable(gl.BLEND);
-    gl.blendFunc(gl.ONE, gl.ONE);
-    Tree
-        .findAll(tree, node => 'light' in node)
-        .forEach(node => renderLightNode(gl, node));
-
-*/
 
     const t1 = performance.now();
     console.log(`${gDrawCallCount} draw calls, ${(t1 - t0).toFixed(0)} ms`);
