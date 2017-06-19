@@ -104,10 +104,10 @@ function rotationZ(angle) {
 }
 
 function getRow(m, row) {
-    return Vec3.fromValues(
-        m[row * ROW_LENGTH + 0],
-        m[row * ROW_LENGTH + 1],
-        m[row * ROW_LENGTH + 2]
+    return new Float32Array(
+        m.buffer,
+        row * ROW_LENGTH * m.BYTES_PER_ELEMENT,
+        ROW_LENGTH
     );
 }
 
