@@ -403,7 +403,7 @@ function drawGeometry(gl, geometry, props = {}) {
     console.assert(gl);
     console.assert(geometry);
 
-    props.uniforms.albedo = props.uniforms.albedo || parseColor(geometry.albedo);
+    props.uniforms.albedo = props.uniforms.albedo || getAlbedo(geometry);
 
     const mesh = getGlMeshFromGeometry(gl, geometry);
     const shader = props.shader || 'ambient';
@@ -595,6 +595,16 @@ function getProgram(gl, name) {
 
 function degToRad(degrees) {
     return degrees * (Math.PI / 180);
+}
+
+function getAlbedo(object) {
+    console.assert(Type.isObject(object));
+    if(object._computed_albedo) {
+        return object._computed_albedo;
+    }
+
+    object._computed_albedo = parseColor(object.albedo);
+    return object._computed_albedo;
 }
 
 function getColor(node) {
