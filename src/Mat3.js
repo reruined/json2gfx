@@ -13,6 +13,7 @@ export default {
     fromEulerAngles,
     multiply,
     getColumn,
+    getColumnFast,
     rotationX,
     rotationY,
     rotationZ,
@@ -49,11 +50,12 @@ function multiply(m1, m2, ...matrices) {
         return m1;
     }
 
+    const m2col = Vec3.zero();
     let result = new Float32Array(ELEMENTS);
     for(let row = 0; row < ROWS; row++) {
         for(let col = 0; col < COLUMNS; col++) {
             const m1row = getRow(m1, row);
-            const m2col = getColumn(m2, col);
+            getColumnFast(m2col, m2, col);
             result[row * ROW_LENGTH + col] = Vec3.dot(m1row, m2col);
         }
     }
@@ -117,6 +119,12 @@ function getColumn(m, col) {
         m[1 * ROW_LENGTH + col],
         m[2 * ROW_LENGTH + col]
     );
+}
+
+function getColumnFast(out, m, col) {
+    out[0] = m[0 * ROW_LENGTH + col];
+    out[1] = m[1 * ROW_LENGTH + col];
+    out[2] = m[2 * ROW_LENGTH + col];
 }
 
 function scale(v) {
