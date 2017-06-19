@@ -19,6 +19,10 @@ function fromGeometry(geometry) {
             normals: {
                 itemSize: 3,
                 data: getTriangleNormals()
+            },
+            uvs: {
+                itemSize: 2,
+                data: getTriangleUvs()
             }
         };
     }
@@ -89,27 +93,29 @@ function fromGeometry(geometry) {
     mesh.positions.data = new Float32Array(mesh.positions.data);
 
     // rotate normals
-    mesh.normals.data = mesh.normals.data
-        .reduce((array, component) => {
-            let lastVertex = array[array.length - 1];
-            if(lastVertex.length === 3) {
-                const newVertex = [];
-                array.push(newVertex);
-                lastVertex = newVertex;
-            }
+    if(mesh.normals) {
+        mesh.normals.data = mesh.normals.data
+            .reduce((array, component) => {
+                let lastVertex = array[array.length - 1];
+                if(lastVertex.length === 3) {
+                    const newVertex = [];
+                    array.push(newVertex);
+                    lastVertex = newVertex;
+                }
 
-            lastVertex.push(component);
-            return array;
-        }, [[]])
-        .map(v => {
-            const n = Vec3.transform(v, Mat3.fromEulerAngles(orientation));
-            console.assert(v.length === 3);
-            return n;
-        })
-        .reduce((array, vertex) => {
-            return array.concat(Array.from(vertex));
-        }, []);
-    mesh.normals.data = new Float32Array(mesh.normals.data);
+                lastVertex.push(component);
+                return array;
+            }, [[]])
+            .map(v => {
+                const n = Vec3.transform(v, Mat3.fromEulerAngles(orientation));
+                console.assert(v.length === 3);
+                return n;
+            })
+            .reduce((array, vertex) => {
+                return array.concat(Array.from(vertex));
+            }, []);
+        mesh.normals.data = new Float32Array(mesh.normals.data);
+    }
 
     if(!mesh) {
         throw new Error(`Invalid shape '${geometry.shape}' in geometry`);
@@ -132,6 +138,14 @@ function getTriangleNormals() {
         0, 0, 1,
         0, 0, 1,
         0, 0, 1
+    ]);
+}
+
+function getTriangleUvs() {
+    return new Float32Array([
+        1, 1,
+        1, 1,
+        1, 1
     ]);
 }
 

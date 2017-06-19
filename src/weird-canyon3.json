@@ -1,5 +1,11 @@
 {
     "geometries": {
+        "test": {
+            "shape": "triangle",
+            "position": [0, 1, 0],
+            "scale": 2
+        },
+
         "ground": {
             "shape": "quad",
             "albedo": "cornsilk",
@@ -55,6 +61,11 @@
     },
 
     "scene": {
+        "test": {
+            "geometry": "@geometries.test",
+            "shader": "debug-uv",
+            "position": [-3, 0, 2]
+        },
         "ground": {
             "shadow": false,
             "geometry": "@geometries.ground",

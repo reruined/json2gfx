@@ -23,6 +23,9 @@ import gSunlightFragSrc from './sunlight.frag';
 import gShadowVertSrc from './shadow.vert';
 import gShadowFragSrc from './shadow.frag';
 
+import gDebugUvVertSrc from './debug-uv.vert';
+import gDebugUvFragSrc from './debug-uv.frag';
+
 const gPrograms = {
     ambient: {
         vsSrc: gAmbientVertSrc,
@@ -39,7 +42,11 @@ const gPrograms = {
     shadow: {
         vsSrc: gShadowVertSrc,
         fsSrc: gShadowFragSrc
-    }
+    },
+    'debug-uv': {
+        vsSrc: gDebugUvVertSrc,
+        fsSrc: gDebugUvFragSrc,
+    },
 };
 
 const gGlMeshes = new WeakMap();
@@ -108,7 +115,7 @@ function json2gfx(canvas, model) {
     objectsWithGeometry
         .forEach(object => {
             drawGeometry(gl, object.geometry, {
-                shader: 'ambient',
+                shader: 'shader' in object ? object.shader : 'ambient',
                 uniforms: {
                     projection: camera.projection,
                     view: camera.view,
@@ -413,17 +420,20 @@ function drawMesh(gl, mesh, shader, {uniforms = {}}) {
         });
 
     mesh.layout.forEach((item, index) => {
-        gl.bindBuffer(gl.ARRAY_BUFFER, item.buffer);
-        gl.vertexAttribPointer(
-            index,
-            item.elementLength,
-            item.type,
-            item.normalize,
-            item.stride,
-            item.offset
-        );
-        gl.enableVertexAttribArray(index);
-        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        const location = gl.getAttribLocation(compiledShader, item.key);
+        if(location !== -1) {
+            gl.bindBuffer(gl.ARRAY_BUFFER, item.buffer);
+            gl.vertexAttribPointer(
+                location,
+                item.elementLength,
+                item.type,
+                item.normalize,
+                item.stride,
+                item.offset
+            );
+            gl.enableVertexAttribArray(location);
+            gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        }
     });
 
     // draw
@@ -507,29 +517,34 @@ function renderLightNode(gl, lightNode) {
 function createGlMesh(gl, mesh) {
     console.log('createGlMesh()');
 
+    const layout = [];
+
     // prepare position buffer
     const positionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, mesh.positions.data, gl.STATIC_DRAW);
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
+    layout.push(
+        {
+            key: 'position',
+            buffer: positionBuffer,
+            type: gl.FLOAT,
+            elementLength: mesh.positions.itemSize,
+            normalize: false,
+            stride: 0,
+            offset: 0
+        }
+    );
 
     // prepare normal buffer
-    const normalBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, mesh.normals.data, gl.STATIC_DRAW);
-    gl.bindBuffer(gl.ARRAY_BUFFER, null);
-
-    return {
-        layout: [
+    if(mesh.normals) {
+        const normalBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, mesh.normals.data, gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        layout.push(
             {
-                buffer: positionBuffer,
-                type: gl.FLOAT,
-                elementLength: mesh.positions.itemSize,
-                normalize: false,
-                stride: 0,
-                offset: 0
-            },
-            {
+                key: 'normal',
                 buffer: normalBuffer,
                 type: gl.FLOAT,
                 elementLength: mesh.normals.itemSize,
@@ -537,7 +552,28 @@ function createGlMesh(gl, mesh) {
                 stride: 0,
                 offset: 0,
             }
-        ],
+        );
+    }
+
+    // prepare uv buffer
+    if(mesh.uvs) {
+        const uvBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, uvBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, mesh.uvs.data, gl.STATIC_DRAW);
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        layout.push({
+            key: 'uv',
+            buffer: uvBuffer,
+            type: gl.FLOAT,
+            elementLength: mesh.uvs.itemSize,
+            normalize: false,
+            stride: 0,
+            offset: 0,
+        });
+    }
+
+    return {
+        layout: layout,
         vertexCount: mesh.positions.data.length / mesh.positions.itemSize
     };
 }
@@ -550,8 +586,9 @@ function compileShader(gl, vsSrc, fsSrc) {
     const vs = Shader.compile(gl, gl.VERTEX_SHADER, vsSrc);
     const fs = Shader.compile(gl, gl.FRAGMENT_SHADER, fsSrc);
     const program = ShaderProgram.compile(gl, vs, fs);
-    gl.bindAttribLocation(program, 0, 'position');
-    gl.bindAttribLocation(program, 1, 'color');
+    // gl.bindAttribLocation(program, 0, 'position');
+    // gl.bindAttribLocation(program, 1, 'color');
+    // gl.bindAttribLocation(program, 2, 'uv');
 
     return program;
 }
