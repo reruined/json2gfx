@@ -42,11 +42,14 @@ const gPrograms = {
 };
 
 const gGlMeshes = new WeakMap();
+let gDrawCallCount = 0;
 
 export default json2gfx;
 
 function json2gfx(canvas, model) {
     console.log('json2gfx()');
+
+    gDrawCallCount = 0;
     const t0 = performance.now();
 
     const gl = canvas.getContext('webgl');
@@ -178,7 +181,7 @@ function json2gfx(canvas, model) {
 */
 
     const t1 = performance.now();
-    console.log(`Rendering took ${(t1 - t0).toFixed(0)} ms`);
+    console.log(`${gDrawCallCount} draw calls, ${(t1 - t0).toFixed(0)} ms`);
 }
 
 function lerp(min, max, interpolator) {
@@ -438,6 +441,7 @@ function drawMesh(gl, mesh, shader, {uniforms = {}}) {
     });
 
     // draw
+    gDrawCallCount++;
     gl.drawArrays(gl.TRIANGLES, 0, mesh.vertexCount);
 
     // reset state
