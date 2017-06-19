@@ -345,21 +345,25 @@ function drawLight(gl, light, props = {}) {
     console.assert(Type.isObject(light));
 
     gl.blendFunc(gl.ONE, gl.ONE);
+    gl.enable(gl.BLEND);
     props.receivers.forEach(object => {
+        const world = getGlobalTransform(object);
+        const lightDirection = Vec3.normalize(Vec3.parse(light.direction));
+        const lightColor = getColor(light);
+        const lightIntensity = getIntensity(light);
         const uniforms = Object.assign({}, props.uniforms, {
-            world: getGlobalTransform(object),
-            lightDirection: Vec3.normalize(Vec3.parse(light.direction)),
-            lightColor: getColor(light),
-            lightIntensity: getIntensity(light)
+            world,
+            lightDirection,
+            lightColor,
+            lightIntensity,
         });
 
-        gl.enable(gl.BLEND);
         drawGeometry(gl, object.geometry, {
             shader: props.shader,
             uniforms: uniforms,
         });
-        gl.disable(gl.BLEND);
     });
+    gl.disable(gl.BLEND);
 }
 
 function drawProjectedShadow(gl, light, props = {}) {
