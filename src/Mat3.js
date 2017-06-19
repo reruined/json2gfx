@@ -46,9 +46,11 @@ function fromEulerAngles(angles) {
 }
 
 let _multiply_m2col = null;
+let _multiply_m1row = null;
 function multiply(m1, m2, ...matrices) {
     if(_multiply_m2col === null) {
         _multiply_m2col = Vec3.zero();
+        _multiply_m1row = Vec3.zero();
     }
 
     if(!m2) {
@@ -58,11 +60,16 @@ function multiply(m1, m2, ...matrices) {
     _multiply_m2col[0] = 0;
     _multiply_m2col[1] = 0;
     _multiply_m2col[2] = 0;
+
+    _multiply_m1row[0] = 0;
+    _multiply_m1row[1] = 0;
+    _multiply_m1row[2] = 0;
+    const m1row = _multiply_m1row;
     const m2col = _multiply_m2col;
     let result = new Float32Array(ELEMENTS);
     for(let row = 0; row < ROWS; row++) {
         for(let col = 0; col < COLUMNS; col++) {
-            const m1row = getRow(m1, row);
+            getRowFast(m1row, m1, row);
             getColumnFast(m2col, m2, col);
             result[row * ROW_LENGTH + col] = Vec3.dot(m1row, m2col);
         }
@@ -119,6 +126,12 @@ function getRow(m, row) {
         row * ROW_LENGTH * m.BYTES_PER_ELEMENT,
         ROW_LENGTH
     );
+}
+
+function getRowFast(out, m, row) {
+    out[0] = m[row * ROW_LENGTH + 0];
+    out[1] = m[row * ROW_LENGTH + 1];
+    out[2] = m[row * ROW_LENGTH + 2];
 }
 
 function getColumn(m, col) {
