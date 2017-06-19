@@ -591,7 +591,12 @@ function degToRad(degrees) {
 
 function getColor(node) {
     console.assert(node);
-    return parseColor(node.color);
+    if(node._computed_color) {
+        return node._computed_color;
+    }
+
+    node._computed_color = parseColor(node.color);
+    return node._computed_color;
 }
 
 function parseColor(value) {
