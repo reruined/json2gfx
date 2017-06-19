@@ -193,9 +193,14 @@ function getGlobalRotationMatrix(object) {
         return Mat3.identity();
     }
 
+    if(object._computed_globalRotationMatrix) {
+        return object._computed_globalRotationMatrix;
+    }
+
     const globalParentRotation = getGlobalRotationMatrix(object._parent);
     const localRotation = getLocalRotationMatrix(object);
-    return Mat3.multiply(globalParentRotation, localRotation);
+    object._computed_globalRotationMatrix = Mat3.multiply(globalParentRotation, localRotation);
+    return object._computed_globalRotationMatrix;
 }
 
 function getLocalPosition(object) {
