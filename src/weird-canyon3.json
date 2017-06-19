@@ -111,7 +111,7 @@
                             "orientation": [0, 0, 0]
                         },
                         "max": {
-                            "position": [50, 4, 50],
+                            "position": [50, 0, 50],
                             "orientation": [270, 270, 270]
                         },
                         "count": 2000
