@@ -178,14 +178,20 @@ function getGlobalPosition(object) {
         return Vec3.zero();
     }
 
+    if(object._computed_globalPosition) {
+        return object._computed_globalPosition;
+    }
+
     const globalParentPosition = getGlobalPosition(object._parent);
     const globalParentRotation = getGlobalRotationMatrix(object._parent);
     const localPosition = getLocalPosition(object);
 
-    return Vec3.add(
+    object._computed_globalPosition = Vec3.add(
         globalParentPosition,
         Vec3.transform(localPosition, globalParentRotation)
     );
+
+    return object._computed_globalPosition;
 }
 
 function getGlobalRotationMatrix(object) {
