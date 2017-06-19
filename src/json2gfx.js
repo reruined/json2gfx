@@ -205,10 +205,14 @@ function randomVec3(min, max) {
 function getGlobalTransform(object) {
     console.assert(Type.isObject(object));
 
+    if(object._computed_globalTransform) {
+        return object._computed_globalTransform;
+    }
+
     const rotation = getGlobalRotationMatrix(object);
     const position = getGlobalPosition(object);
-    const transform = Mat4.fromRotationTranslation(rotation, position);
-    return transform;
+    object._computed_globalTransform = Mat4.fromRotationTranslation(rotation, position);
+    return object._computed_globalTransform;
 }
 
 function getGlobalPosition(object) {
