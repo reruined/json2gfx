@@ -7,6 +7,7 @@ if(module.hot) {
 }
 
 const gCanvas = document.querySelector('canvas');
+gCanvas.onclick = render;
 render();
 
 function updateCanvasSize() {
@@ -22,5 +23,5 @@ function updateCanvasSize() {
 
 function render() {
     updateCanvasSize();
-    json2gfx(gCanvas, gModel);
+    json2gfx(gCanvas, JSON.parse(JSON.stringify(gModel)));
 }

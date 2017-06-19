@@ -46,6 +46,8 @@ const gGlMeshes = new WeakMap();
 export default json2gfx;
 
 function json2gfx(canvas, model) {
+    console.log('json2gfx()');
+    const t0 = performance.now();
 
     const gl = canvas.getContext('webgl');
     gl.enable(gl.DEPTH_TEST);
@@ -174,6 +176,9 @@ function json2gfx(canvas, model) {
         .forEach(node => renderLightNode(gl, node));
 
 */
+
+    const t1 = performance.now();
+    console.log(`Rendering took ${(t1 - t0).toFixed(0)} ms`);
 }
 
 function lerp(min, max, interpolator) {
