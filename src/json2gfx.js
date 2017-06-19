@@ -1,5 +1,6 @@
 'use strict';
 
+import Random from 'random-js';
 import Vec3 from './Vec3.js';
 import Vec4 from './Vec4.js';
 import Mat3 from './Mat3.js';
@@ -73,9 +74,18 @@ function json2gfx(canvas, model) {
         .forEach(object => {
             object.children = object.children || {};
             const generator = object.generator;
+            const randomEngine = Random.engines.mt19937().seed(getSeed(generator));
             for(let i = 0; i < generator.count; i++) {
-                const position = randomVec3(generator.min.position, generator.max.position);
-                const orientation = randomVec3(generator.min.orientation, generator.max.orientation);
+                const position = randomVec3(
+                    randomEngine,
+                    generator.min.position,
+                    generator.max.position
+                );
+                const orientation = randomVec3(
+                    randomEngine,
+                    generator.min.orientation,
+                    generator.max.orientation
+                );
                 object.children[i] = Object.assign(
                     {},
                     generator.template,
@@ -148,15 +158,14 @@ function lerp(min, max, interpolator) {
     return min + ((max - min) * interpolator);
 }
 
-function randomReal(min, max) {
-    return lerp(min, max, Math.random());
-}
-
-function randomVec3(min, max) {
+function randomVec3(engine, min, max) {
+    const distX = Random.real(min[0], max[0], true);
+    const distY = Random.real(min[1], max[1], true);
+    const distZ = Random.real(min[2], max[2], true);
     return Vec3.fromValues(
-        randomReal(min[0], max[0]),
-        randomReal(min[1], max[1]),
-        randomReal(min[2], max[2])
+        distX(engine),
+        distY(engine),
+        distZ(engine)
     );
 }
 
@@ -574,6 +583,11 @@ function getAlbedo(object) {
 
     object._computed_albedo = parseColor(object.albedo);
     return object._computed_albedo;
+}
+
+function getSeed(object) {
+    console.assert(Type.isObject(object));
+    return 'seed' in object ? object.seed : 0;
 }
 
 function getColor(node) {
