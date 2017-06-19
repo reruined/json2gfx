@@ -45,12 +45,20 @@ function fromEulerAngles(angles) {
     return multiply(bank, pitch, heading);
 }
 
+let _multiply_m2col = null;
 function multiply(m1, m2, ...matrices) {
+    if(_multiply_m2col === null) {
+        _multiply_m2col = Vec3.zero();
+    }
+
     if(!m2) {
         return m1;
     }
 
-    const m2col = Vec3.zero();
+    _multiply_m2col[0] = 0;
+    _multiply_m2col[1] = 0;
+    _multiply_m2col[2] = 0;
+    const m2col = _multiply_m2col;
     let result = new Float32Array(ELEMENTS);
     for(let row = 0; row < ROWS; row++) {
         for(let col = 0; col < COLUMNS; col++) {
