@@ -3,7 +3,7 @@
         "test": {
             "shape": "triangle",
             "albedo": "./sand.jpg",
-            "position": [0, 1, 0],
+            "position": [0, 0.5, 0],
             "scale": 1
         },
 
@@ -16,7 +16,7 @@
 
         "ground": {
             "shape": "quad",
-            "albedo": "cornsilk",
+            "albedo": "./sand.jpg",
             "orientation": [-90, 0, 0],
             "scale": 400
         },
@@ -71,13 +71,13 @@
     "scene": {
         "test": {
             "geometry": "@geometries.test",
-            "position": [-4, 1, 8],
+            "position": [-3, 0.0, 8],
             "orientation": [0, -80, 0]
         },
         "test2": {
             "geometry": "@geometries.test2",
-            "position": [-4, 1, 6],
-            "orientation": [0, -80, 0]
+            "position": [-4, 0, 2],
+            "orientation": [-3.5, -90, 0]
         },
         "ground": {
             "shadow": false,
