@@ -36,6 +36,10 @@ function fromGeometry(geometry) {
             normals: {
                 itemSize: 3,
                 data: getPlaneNormals()
+            },
+            uvs: {
+                itemSize: 2,
+                data: getPlaneUvs()
             }
         };
     }
@@ -143,9 +147,9 @@ function getTriangleNormals() {
 
 function getTriangleUvs() {
     return new Float32Array([
-        1, 1,
-        1, 1,
-        1, 1
+        0.5, 1,
+        0, 0,
+        1, 0
     ]);
 }
 
@@ -171,6 +175,18 @@ function getPlaneNormals() {
         0, 0, 1,
         0, 0, 1,
         0, 0, 1
+    ]);
+}
+
+function getPlaneUvs() {
+    return new Float32Array([
+        0, 0,
+        1, 0,
+        1, 1,
+
+        1, 1,
+        0, 1,
+        0, 0,
     ]);
 }
 
