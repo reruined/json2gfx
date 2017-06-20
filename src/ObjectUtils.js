@@ -2,6 +2,7 @@ import Type from './Type.js';
 
 export default {
     resolvePath,
+    find,
     findAll,
 };
 
@@ -37,4 +38,13 @@ function findAll(object, predicate, visitedObjects = [], container = []) {
         .forEach(item => findAll(item, predicate, visitedObjects, container));
 
     return container;
+}
+
+function find(object, predicate) {
+    const results = findAll(object, predicate);
+    if(results.length > 0) {
+        return results[0];
+    }
+
+    return null;
 }
