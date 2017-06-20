@@ -2,6 +2,14 @@
     "geometries": {
         "test": {
             "shape": "triangle",
+            "albedo": "./sand.jpg",
+            "position": [0, 1, 0],
+            "scale": 1
+        },
+
+        "test2": {
+            "shape": "quad",
+            "albedo": "./fist.jpg",
             "position": [0, 1, 0],
             "scale": 2
         },
@@ -63,8 +71,13 @@
     "scene": {
         "test": {
             "geometry": "@geometries.test",
-            "shader": "debug-uv",
-            "position": [-3, 0, 2]
+            "position": [-4, 1, 8],
+            "orientation": [0, -80, 0]
+        },
+        "test2": {
+            "geometry": "@geometries.test2",
+            "position": [-4, 1, 6],
+            "orientation": [0, -80, 0]
         },
         "ground": {
             "shadow": false,

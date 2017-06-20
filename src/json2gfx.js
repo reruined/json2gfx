@@ -26,6 +26,9 @@ import gShadowFragSrc from './shadow.frag';
 import gDebugUvVertSrc from './debug-uv.vert';
 import gDebugUvFragSrc from './debug-uv.frag';
 
+import gSandImage from './sand.jpg';
+import gFistImage from './fist.jpg';
+
 const gPrograms = {
     ambient: {
         vsSrc: gAmbientVertSrc,
@@ -49,6 +52,11 @@ const gPrograms = {
     },
 };
 
+const gImages = {
+    './sand.jpg': gSandImage,
+    './fist.jpg': gFistImage
+};
+
 const gGlMeshes = new WeakMap();
 let gDrawCallCount = 0;
 
@@ -57,22 +65,28 @@ export default json2gfx;
 function json2gfx(canvas, model) {
     console.log('json2gfx()');
 
+    const gl = canvas.getContext('webgl');
+    let root = model;
+    resolveParents(root);
+    resolveReferences(root);
+    loadTextures(gl, root).then(() => render(gl, root) );
+}
+
+function render(gl, root) {
     gDrawCallCount = 0;
     const t0 = performance.now();
 
-    const gl = canvas.getContext('webgl');
     gl.enable(gl.DEPTH_TEST);
     gl.depthFunc(gl.LEQUAL);
     gl.enable(gl.CULL_FACE);
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
-    let root = model;
-    resolveParents(root);
-    resolveReferences(root);
 
     const backColor = parseColor(root.backColor);
     gl.clearColor(...backColor);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    const camera = createCamera(root.camera, gl.canvas.width / gl.canvas.height);
 
     const objectsWithGenerator = ObjectUtils
         .findAll(root.scene, item => 'generator' in item)
@@ -107,7 +121,6 @@ function json2gfx(canvas, model) {
             delete object.generator;
         });
 
-    const camera = createCamera(root.camera, gl.canvas.width / gl.canvas.height);
     const objectsWithGeometry = ObjectUtils
         .findAll(root.scene, item => 'geometry' in item)
         .filter(isVisible);
@@ -157,6 +170,37 @@ function json2gfx(canvas, model) {
 
     const t1 = performance.now();
     console.log(`${gDrawCallCount} draw calls, ${(t1 - t0).toFixed(0)} ms`);
+}
+
+function loadTextures(gl, root) {
+    return new Promise(resolve => {
+        const objectsWithTexture = ObjectUtils
+            .findAll(root, item => 'albedo' in item)
+            .filter(item => item.albedo.startsWith('./'));
+
+        const promises = objectsWithTexture
+            .map(object => {
+                return new Promise(resolve => {
+                    const texture = gl.createTexture();
+                    const img = new Image();
+                    img.onload = () => {
+                        gl.bindTexture(gl.TEXTURE_2D, texture);
+                        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+                        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+                        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+                        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+                        gl.activeTexture(gl.TEXTURE0);
+                        gl.bindTexture(gl.TEXTURE_2D, null);
+                        // gl.bindTexture(gl.TEXTURE_2D, texture);
+
+                        object.albedoSampler = texture;
+                        resolve();
+                    };
+                    img.src = gImages[object.albedo];
+                });
+            });
+        Promise.all(promises).then(resolve);
+    });
 }
 
 function lerp(min, max, interpolator) {
@@ -395,6 +439,13 @@ function drawGeometry(gl, geometry, props = {}) {
     console.assert(geometry);
 
     props.uniforms.albedo = props.uniforms.albedo || getAlbedo(geometry);
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, null);
+    if(geometry.albedoSampler) {
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, geometry.albedoSampler);
+    }
 
     const mesh = getGlMeshFromGeometry(gl, geometry);
     const shader = props.shader || 'ambient';
