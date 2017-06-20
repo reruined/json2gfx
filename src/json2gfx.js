@@ -309,10 +309,16 @@ function resolveReferences(value, root = value) {
 
 function commitUniform(gl, location, value) {
     console.assert(location);
-    console.assert(value);
+    console.assert(!Type.isUndefined(value));
+    console.assert(!Type.isNull(value));
 
     if(Type.isNumber(value)) {
-        gl.uniform1f(location, value);
+        if(Number.isInteger(value)) {
+            gl.uniform1i(location, value);
+        }
+        else {
+            gl.uniform1f(location, value);
+        }
     }
     if(value.length === 16) {
         gl.uniformMatrix4fv(location, false, value);
