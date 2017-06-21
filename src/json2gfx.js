@@ -312,9 +312,10 @@ function createCamera(object, ar, convertFovToRadians = true) {
     const view = Mat4.lookAt(object.position, object.lookAt, [0, 1, 0]);
 
     const fov = convertFovToRadians ? degToRad(object.fov) : object.fov;
+    const hFov = 2 * Math.atan(Math.tan(fov / 2) / ar);
     const projection =
         object.projection === 'perspective' ?
-        Mat4.perspective(ar, fov, object.near, object.far) :
+        Mat4.perspective(ar, hFov, object.near, object.far) :
         Mat4.identity();
 
     return {
