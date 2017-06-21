@@ -29,6 +29,8 @@ import gDebugUvFragSrc from './debug-uv.frag';
 import gSandImage from './sand.jpg';
 import gSand2Image from './sand2.jpg';
 import gFistImage from './fist.jpg';
+import gWhiteImage from './white.png';
+import gBlackImage from './black.png';
 
 const gPrograms = {
     ambient: {
@@ -56,9 +58,12 @@ const gPrograms = {
 const gImages = {
     './sand.jpg': gSandImage,
     './sand2.jpg': gSand2Image,
-    './fist.jpg': gFistImage
+    './fist.jpg': gFistImage,
+    './white.png': gWhiteImage,
+    './black.png': gBlackImage,
 };
 
+const gTextures = {};
 const gGlMeshes = new WeakMap();
 let gDrawCallCount = 0;
 
@@ -174,6 +179,40 @@ function render(gl, root) {
     console.log(`${gDrawCallCount} draw calls, ${(t1 - t0).toFixed(0)} ms`);
 }
 
+function loadTexture(gl, path, callback = () => {}) {
+    console.assert(gl);
+    console.assert(Type.isString(path));
+
+    if(path in gTextures) {
+        callback();
+        return gTextures[path];
+    }
+
+    const texture = gl.createTexture();
+    gTextures[path] = texture;
+
+    const img = new Image();
+    img.onload = () => {
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+        const ext = gl.getExtension('EXT_texture_filter_anisotropic');
+        if(ext) {
+            gl.texParameterf(gl.TEXTURE_2D, ext.TEXTURE_MAX_ANISOTROPY_EXT, 4);
+        }
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.generateMipmap(gl.TEXTURE_2D);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+
+        console.log(`Finished loading ${path}`);
+        callback();
+    };
+    img.src = gImages[path];
+    return texture;
+}
+
 function loadTextures(gl, root) {
     return new Promise(resolve => {
         const objectsWithTexture = ObjectUtils
@@ -183,32 +222,20 @@ function loadTextures(gl, root) {
         const promises = objectsWithTexture
             .map(object => {
                 return new Promise(resolve => {
-                    const texture = gl.createTexture();
-                    const img = new Image();
-                    img.onload = () => {
-                        gl.bindTexture(gl.TEXTURE_2D, texture);
-                        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-                        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
-                        const ext = gl.getExtension('EXT_texture_filter_anisotropic');
-                        if(ext) {
-                            gl.texParameterf(gl.TEXTURE_2D, ext.TEXTURE_MAX_ANISOTROPY_EXT, 4);
-                        }
-                        else {
-                        }
-                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
-                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-                        gl.generateMipmap(gl.TEXTURE_2D);
-                        gl.activeTexture(gl.TEXTURE0);
-                        gl.bindTexture(gl.TEXTURE_2D, null);
-                        // gl.bindTexture(gl.TEXTURE_2D, texture);
-
-                        object.albedoSampler = texture;
-                        resolve();
-                    };
-                    img.src = gImages[object.albedo];
+                    object.albedoSampler = loadTexture(
+                        gl,
+                        object.albedo,
+                        resolve
+                    );
                 });
             });
-        Promise.all(promises).then(resolve);
+        const white = new Promise(resolve => {
+            loadTexture(gl, './white.png', resolve);
+        });
+        const black = new Promise(resolve => {
+            loadTexture(gl, './black.png', resolve);
+        });
+        Promise.all(promises.concat([white, black])).then(resolve);
     });
 }
 
@@ -461,6 +488,10 @@ function drawGeometry(gl, geometry, props = {}) {
     if(geometry.albedoSampler) {
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, geometry.albedoSampler);
+    }
+    else {
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, gTextures['./black.png']);
     }
 
     const mesh = getGlMeshFromGeometry(gl, geometry);
