@@ -27,6 +27,7 @@ import gDebugUvVertSrc from './debug-uv.vert';
 import gDebugUvFragSrc from './debug-uv.frag';
 
 import gSandImage from './sand.jpg';
+import gSand2Image from './sand2.jpg';
 import gFistImage from './fist.jpg';
 
 const gPrograms = {
@@ -54,6 +55,7 @@ const gPrograms = {
 
 const gImages = {
     './sand.jpg': gSandImage,
+    './sand2.jpg': gSand2Image,
     './fist.jpg': gFistImage
 };
 
@@ -187,8 +189,15 @@ function loadTextures(gl, root) {
                         gl.bindTexture(gl.TEXTURE_2D, texture);
                         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
                         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
-                        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-                        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+                        const ext = gl.getExtension('EXT_texture_filter_anisotropic');
+                        if(ext) {
+                            gl.texParameterf(gl.TEXTURE_2D, ext.TEXTURE_MAX_ANISOTROPY_EXT, 4);
+                        }
+                        else {
+                        }
+                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+                        gl.generateMipmap(gl.TEXTURE_2D);
                         gl.activeTexture(gl.TEXTURE0);
                         gl.bindTexture(gl.TEXTURE_2D, null);
                         // gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -351,18 +360,14 @@ function resolveReferences(value, root = value) {
     return value;
 }
 
-function commitUniform(gl, location, value) {
+function commitUniform(gl, location, value, key) {
     console.assert(location);
     console.assert(!Type.isUndefined(value));
     console.assert(!Type.isNull(value));
 
     if(Type.isNumber(value)) {
-        if(Number.isInteger(value)) {
-            gl.uniform1i(location, value);
-        }
-        else {
-            gl.uniform1f(location, value);
-        }
+        gl.uniform1i(location, value);
+        gl.uniform1f(location, value);
     }
     if(value.length === 16) {
         gl.uniformMatrix4fv(location, false, value);
@@ -434,11 +439,21 @@ function getGlMeshFromGeometry(gl, geometry) {
     return gGlMeshes.get(geometry);
 }
 
+function getUvScale(object) {
+    console.assert(Type.isObject(object));
+    if('uvScale' in object) {
+        return object.uvScale;
+    }
+
+    return 1;
+}
+
 function drawGeometry(gl, geometry, props = {}) {
     console.assert(gl);
     console.assert(geometry);
 
     props.uniforms.albedo = props.uniforms.albedo || getAlbedo(geometry);
+    props.uniforms.uvScale = props.uniforms.uvScale || getUvScale(geometry);
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, null);
@@ -473,7 +488,7 @@ function drawMesh(gl, mesh, shader, {uniforms = {}}) {
                 return;
             }
 
-            commitUniform(gl, triple.location, triple.value);
+            commitUniform(gl, triple.location, triple.value, triple.key);
         });
 
     mesh.layout.forEach((item, index) => {
