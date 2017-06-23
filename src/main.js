@@ -17,7 +17,7 @@ init();
 
 function init() {
     if(module.hot) {
-        //module.hot.accept('./weird-canyon3.json', render);
+        //module.hot.accept('../content/models/weird-canyon3.json', () => console.log('omagads!'));
     }
 
     canvas = document.querySelector('canvas');
