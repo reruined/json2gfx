@@ -11,6 +11,10 @@ module.exports = {
     watchOptions: {
 
     },
+    devServer: {
+        contentBase: [path.join(__dirname, ''), path.join(__dirname, 'content')],
+        publicPath: '/',
+    },
     devtool: 'inline-source-map',
     module: {
         rules: [
