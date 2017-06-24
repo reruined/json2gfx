@@ -243,12 +243,6 @@ function loadTextures(gl, root) {
     });
 }
 
-function lerp(min, max, interpolator) {
-    console.assert(interpolator >= 0);
-    console.assert(interpolator <= 1);
-    return min + ((max - min) * interpolator);
-}
-
 function randomVec3(engine, min, max) {
     const distX = Random.real(min[0], max[0], true);
     const distY = Random.real(min[1], max[1], true);
@@ -392,7 +386,7 @@ function resolveReferences(value, root = value) {
     return value;
 }
 
-function commitUniform(gl, location, value, key) {
+function commitUniform(gl, location, value) {
     console.assert(location);
     console.assert(!Type.isUndefined(value));
     console.assert(!Type.isNull(value));
@@ -527,7 +521,7 @@ function drawMesh(gl, mesh, shader, {uniforms = {}}) {
             commitUniform(gl, triple.location, triple.value, triple.key);
         });
 
-    mesh.layout.forEach((item, index) => {
+    mesh.layout.forEach(item => {
         const location = gl.getAttribLocation(compiledShader, item.key);
         if(location !== -1) {
             gl.bindBuffer(gl.ARRAY_BUFFER, item.buffer);
