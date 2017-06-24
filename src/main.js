@@ -38,12 +38,12 @@ function requestModelFile(path) {
     }
 
     requestFile(path)
+        .catch(error => {
+            console.error(`Failed to load model '${path}': ${error}`);
+        })
         .then(response => {
             console.log(`Loading model '${path}'...`);
             loadModel(JSON.parse(response));
-        })
-        .catch(error => {
-            console.error(`Failed to load model '${path}': ${error}`);
         });
 }
 
