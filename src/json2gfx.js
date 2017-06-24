@@ -417,14 +417,18 @@ function resolveReferences(value, root = value) {
     return value;
 }
 
-function commitUniform(gl, location, value) {
+function commitUniform(gl, location, value, key) {
     console.assert(location);
     console.assert(!Type.isUndefined(value));
     console.assert(!Type.isNull(value));
 
     if(Type.isNumber(value)) {
-        gl.uniform1i(location, value);
-        gl.uniform1f(location, value);
+        if(Number.isInteger(value) && key != 'uvScale') {
+            gl.uniform1i(location, value);
+        }
+        else {
+            gl.uniform1f(location, value);
+        }
     }
     if(value.length === 16) {
         gl.uniformMatrix4fv(location, false, value);
