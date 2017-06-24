@@ -21,7 +21,9 @@ function init() {
     }
 
     canvas = document.querySelector('canvas');
-    canvas.addEventListener('click', render);
+    canvas.addEventListener('click', () => {
+        requestModelFile(getHashComponent(window.location.hash));
+    });
 
     window.addEventListener('hashchange', handleHashChange);
 
