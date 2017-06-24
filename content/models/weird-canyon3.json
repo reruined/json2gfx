@@ -174,7 +174,7 @@
         }
     },
 
-    "render": "@scene",
+    "export": "@scene",
     "camera": "@scene.ground.children.camera",
     "backColor": "skyblue"
 }

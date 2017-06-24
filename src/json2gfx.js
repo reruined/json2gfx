@@ -73,13 +73,21 @@ function json2gfx(canvas, model) {
     console.log('json2gfx()');
 
     const gl = canvas.getContext('webgl');
-    let root = model;
-    resolveParents(root);
-    resolveReferences(root);
-    loadTextures(gl, root).then(() => render(gl, root) );
+    resolveParents(model);
+    resolveReferences(model);
+
+    const camera = createCamera(model.camera, gl.canvas.width / gl.canvas.height);
+    const backColor = getBackColor(model);
+    const root = getExport(model);
+
+    loadTextures(gl, root)
+        .then(() => render(gl, root, {
+            camera,
+            backColor
+        }) );
 }
 
-function render(gl, root) {
+function render(gl, root, {camera, backColor}) {
     gDrawCallCount = 0;
     const t0 = performance.now();
 
@@ -88,15 +96,11 @@ function render(gl, root) {
     gl.enable(gl.CULL_FACE);
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
-
-    const backColor = parseColor(root.backColor);
     gl.clearColor(...backColor);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    const camera = createCamera(root.camera, gl.canvas.width / gl.canvas.height);
-
     const objectsWithGenerator = ObjectUtils
-        .findAll(root.scene, item => 'generator' in item)
+        .findAll(root, item => 'generator' in item)
         .filter(isVisible);
     objectsWithGenerator
         .forEach(object => {
@@ -129,7 +133,7 @@ function render(gl, root) {
         });
 
     const objectsWithGeometry = ObjectUtils
-        .findAll(root.scene, item => 'geometry' in item)
+        .findAll(root, item => 'geometry' in item)
         .filter(isVisible);
 
     objectsWithGeometry
@@ -145,7 +149,7 @@ function render(gl, root) {
         });
 
     const objectsWithLight = ObjectUtils
-        .findAll(root.scene, item => 'light' in item)
+        .findAll(root, item => 'light' in item)
         .filter(isVisible);
 
     objectsWithLight
@@ -716,6 +720,13 @@ function degToRad(degrees) {
     return degrees * (Math.PI / 180);
 }
 
+function getBackColor(object) {
+    console.assert(Type.isObject(object));
+
+    const backColor = parseColor(object.backColor);
+    return backColor;
+}
+
 function getAlbedo(object) {
     console.assert(Type.isObject(object));
     if(object._computed_albedo) {
@@ -724,6 +735,11 @@ function getAlbedo(object) {
 
     object._computed_albedo = parseColor(object.albedo);
     return object._computed_albedo;
+}
+
+function getExport(object) {
+    console.assert(Type.isObject(object));
+    return 'export' in object ? object.export : object;
 }
 
 function getSeed(object) {
