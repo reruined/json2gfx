@@ -288,6 +288,12 @@ function getGlobalPosition(object) {
     return object._computed_globalPosition;
 }
 
+function getLookAt(object) {
+    console.assert(Type.isObject(object));
+
+    return Vec3.parse(object.lookAt);
+}
+
 function getGlobalRotationMatrix(object) {
     if(!object) {
         return Mat3.identity();
@@ -330,17 +336,42 @@ function isVisible(object) {
     return 'visible' in object ? object.visible : true;
 }
 
-function createCamera(object, ar, convertFovToRadians = true) {
+function getNear(object) {
     console.assert(Type.isObject(object));
+    return 'near' in object ? object.near : 0.1;
+}
+
+function getFar(object) {
+    console.assert(Type.isObject(object));
+    return 'far' in object ? object.far : 1000;
+}
+
+function getFov(object) {
+    console.assert(Type.isObject(object));
+    return 'fov' in object ? object.fov : 90;
+}
+
+function getProjectionType(object) {
+    console.assert(Type.isObject(object));
+    return 'projection' in object ? object.projection : 'perspective';
+}
+
+function createCamera(object, ar, convertFovToRadians = true) {
     console.assert(Type.isNumber(ar) && ar > 0);
 
-    const view = Mat4.lookAt(object.position, object.lookAt, [0, 1, 0]);
+    const position = object ? getGlobalPosition(object) : [0, 0, 1];
+    const lookAt = object ? getLookAt(object) : Vec3.zero();
+    const view = Mat4.lookAt(position, lookAt, [0, 1, 0]);
 
-    const fov = convertFovToRadians ? degToRad(object.fov) : object.fov;
-    const hFov = 2 * Math.atan(Math.tan(fov / 2) / ar);
+    const near = object ? getNear(object) : 0.1;
+    const far = object ? getFar(object) : 1000;
+    const projectionType = object ? getProjectionType(object) : 'perspective';
+    const fov = object ? getFov(object) : 90;
+    const fovRadians = convertFovToRadians ? degToRad(fov) : fov;
+    const hFov = 2 * Math.atan(Math.tan(fovRadians / 2) / ar);
     const projection =
-        object.projection === 'perspective' ?
-        Mat4.perspective(ar, hFov, object.near, object.far) :
+        projectionType === 'perspective' ?
+        Mat4.perspective(ar, hFov, near, far) :
         Mat4.identity();
 
     return {
