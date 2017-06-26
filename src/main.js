@@ -1,33 +1,14 @@
+'use strict';
+
 import './style.css';
 import json2gfx from './json2gfx.js';
 
 const modules = {};
-
-const DEFAULT_MODEL = 'models/weird-canyon3.json';
-
-const READY_STATE = {
-    0: 'UNSENT',
-    1: 'OPENED',
-    2: 'HEADERS_RECEIVED',
-    3: 'LOADING',
-    4: 'DONE'
-};
-
 let canvas = null;
 
 init();
 
 function init() {
-    /*
-    if(module.hot) {
-        module.hot.accept(context.id, () => {
-            context = require.context('../content', true, /\.json$/);
-            context.keys().map(context);
-            requestModelFile(getHashComponent(window.location.hash));
-        });
-    }
-    */
-
     canvas = document.querySelector('canvas');
     canvas.addEventListener('click', () => {
         requestModelFile(getHashComponent(window.location.hash));
@@ -73,6 +54,8 @@ function loadModel(model) {
 }
 
 function requestModelFile(path) {
+    const DEFAULT_MODEL = 'models/weird-canyon3.json';
+
     if(path.length === 0) {
         path = DEFAULT_MODEL;
     }
@@ -96,6 +79,14 @@ function handleHashChange(e) {
 }
 
 function requestFile(path) {
+    const READY_STATE = Object.freeze({
+        0: 'UNSENT',
+        1: 'OPENED',
+        2: 'HEADERS_RECEIVED',
+        3: 'LOADING',
+        4: 'DONE'
+    });
+
     return new Promise(executor);
 
     function executor(resolve, reject) {
@@ -119,8 +110,7 @@ function requestFile(path) {
 
         function handleProgress(e) {
             const ratio = ((e.loaded / e.total) * 100).toFixed(1);
-            const percentComplete =
-                e.lengthComputable ?
+            const percentComplete = e.lengthComputable ?
                 `${ratio}%` :
                 '<N/A>';
 
