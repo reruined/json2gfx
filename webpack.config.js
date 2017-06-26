@@ -1,5 +1,6 @@
 /* eslint-env node */
 const path = require('path');
+const webpack = require('webpack');
 
 module.exports = {
     context: path.resolve(__dirname),
@@ -13,7 +14,7 @@ module.exports = {
     },
     devServer: {
         contentBase: [path.join(__dirname, 'content')],
-        watchContentBase: true,
+        //watchContentBase: true,
     },
     devtool: 'inline-source-map',
     module: {
@@ -32,7 +33,16 @@ module.exports = {
                 test: /\.(jpg|png)$/,
                 loader: ['url-loader'],
                 exclude: /node_modules/,
+            },
+            /*
+            {
+                test: /\.json$/,
+                loader: 'file-loader',
             }
+            */
         ]
     },
+    plugins: [
+        new webpack.NamedModulesPlugin(),
+    ]
 };

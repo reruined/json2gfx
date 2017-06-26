@@ -1,6 +1,8 @@
 import './style.css';
 import json2gfx from './json2gfx.js';
 
+const modules = {};
+
 const DEFAULT_MODEL = 'models/weird-canyon3.json';
 
 const READY_STATE = {
@@ -16,9 +18,15 @@ let canvas = null;
 init();
 
 function init() {
+    /*
     if(module.hot) {
-        //module.hot.accept('../content/models/weird-canyon3.json', () => console.log('omagads!'));
+        module.hot.accept(context.id, () => {
+            context = require.context('../content', true, /\.json$/);
+            context.keys().map(context);
+            requestModelFile(getHashComponent(window.location.hash));
+        });
     }
+    */
 
     canvas = document.querySelector('canvas');
     canvas.addEventListener('click', () => {
@@ -28,6 +36,36 @@ function init() {
     window.addEventListener('hashchange', handleHashChange);
 
     requestModelFile(getHashComponent(window.location.hash));
+
+    initContentHmr();
+}
+
+function initContentHmr() {
+    let context = require.context('../content', true, /\.(json|vert|frag|png|jpg)$/);
+    context.keys().forEach(key => {
+        modules[key] = context(key);
+    });
+
+    if(module.hot) {
+        module.hot.accept(context.id, () => {
+            const newContext = require.context('../content', true, /\.(json|vert|frag|png|jpg)$/);
+            const changedModules = newContext.keys()
+                .map(key => ({ key: key, 'module': newContext(key) }))
+                .filter(pair => modules[pair.key] !== pair.module);
+
+            changedModules.forEach(pair => {
+                modules[pair.key] = pair.module;
+
+                if(getHashComponent(window.location.hash) === pair.key.replace(/^\.\//, '')) {
+                    requestModelFile(getHashComponent(window.location.hash));
+                    console.log('Reloaded', pair.key);
+                }
+                else {
+                    console.log('Not reloaded', pair.key);
+                }
+            });
+        });
+    }
 }
 
 function loadModel(model) {
