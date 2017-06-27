@@ -34,11 +34,6 @@ module.exports = {
                 loader: ['url-loader'],
                 exclude: /node_modules/,
             },
-            {
-                test: /\.json$/,
-                loader: 'file-loader',
-                exclude: /node_modules/
-            }
         ]
     },
     plugins: [
