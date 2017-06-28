@@ -1,24 +1,25 @@
 'use strict';
 
 import './style.css';
-import json2gfx from './json2gfx.js';
+import Gfx from './Gfx.js';
+import GlMesh from './GlMesh.js';
+import Mesh from './Mesh.js';
+import Shader from './Shader.js';
+import ShaderProgram from './ShaderProgram.js';
 
 const modules = {};
-let canvas = null;
+const canvas = document.querySelector('canvas');
+let scene = null;
 
 init();
 
 function init() {
-    canvas = document.querySelector('canvas');
-    canvas.addEventListener('click', () => {
-        requestModelFile(getHashComponent(window.location.hash));
-    });
-
-    window.addEventListener('hashchange', handleHashChange);
-
-    requestModelFile(getHashComponent(window.location.hash));
+    canvas.addEventListener('click', renderScene);
+    window.addEventListener('hashchange', reloadModel);
+    window.addEventListener('resize', renderScene);
 
     initContentHmr();
+    reloadModel();
 }
 
 function initContentHmr() {
@@ -37,18 +38,104 @@ function initContentHmr() {
             changedModules.forEach(pair => {
                 modules[pair.key] = pair.module;
 
+                reloadModel();
+                /*
                 if(getHashComponent(window.location.hash) === pair.key.replace(/^\.\//, '')) {
-                    requestModelFile(getHashComponent(window.location.hash));
+                    reloadModel();
                     console.log('Reloaded', pair.key);
                 }
                 else {
                     console.log('Not reloaded', pair.key);
                 }
+                */
             });
         });
     }
 }
 
+function reloadModel() {
+    scene = createScene();
+    renderScene();
+}
+
+function createScene() {
+    const pathToModelFile = `./${getHashComponent(window.location.hash)}`;
+    const model = modules['./models/test2.json'];
+    const resources = modules;
+    const gl = Gfx.getGlContext(canvas);
+
+    console.time('Scene creation');
+    // create an array of nodes, with keys, from the source object
+    const nodes = Object
+        .keys(model)
+        // create key-value pairs
+        .map(key => ({ key: key, value: model[key] }))
+        // merge key and value into a new node
+        .map(pair => Object.assign({}, pair.value, { key: pair.key }));
+    console.log(`Created ${nodes.length} nodes`);
+
+    // resolve parents
+    nodes.forEach(node => {
+        if('parent' in node) {
+            const parent = nodes.find(item => item.key === node.parent.substr(1));
+            node.parent = parent;
+        }
+    });
+
+    // calculate globalTransform for all nodes
+    nodes.forEach(node => node.globalTransform = Gfx.getGlobalTransform(node));
+    console.log('Calculated global transforms');
+
+    // create meshes from geometries
+    const meshes = nodes
+        .filter(node => 'geometry' in node)
+        .map(node => node.geometry)
+        .map(Mesh.fromGeometry)
+        .map(GlMesh.fromMesh.bind(null, gl));
+    console.log(`Created ${meshes.length} meshes`);
+
+    // assign meshes to nodes
+    nodes
+        .filter(node => 'geometry' in node)
+        .forEach((node, index) => node.mesh = meshes[index]);
+
+    // delete geometry from all nodes with a mesh
+    nodes
+        .filter(node => 'mesh' in node)
+        .forEach(node => delete node.geometry);
+
+    // create shader programs for all nodes
+    const programs = nodes
+        .map(node => 'ambient')
+        .map(programName => {
+            const vsSrc = resources[`./shaders/${programName}.vert`];
+            const fsSrc = resources[`./shaders/${programName}.frag`];
+            const vs = Shader.compile(gl, gl.VERTEX_SHADER, vsSrc);
+            const fs = Shader.compile(gl, gl.FRAGMENT_SHADER, fsSrc);
+            return ShaderProgram.compile(gl, vs, fs);
+        });
+    console.log(`Compiled ${programs.length} shader programs`);
+
+    // assign shaders to nodes
+    nodes.forEach((node, index) => node.shaderProgram = programs[index]);
+
+    const scene = { nodes };
+    console.timeEnd('Scene creation');
+
+    return scene;
+}
+
+function renderScene() {
+    console.time('Scene rendering');
+    Gfx.renderScene(canvas, scene);
+    console.timeEnd('Scene rendering');
+}
+
+function getHashComponent(hash) {
+    return decodeURIComponent(hash).replace(/^#/, '');
+}
+
+/*
 function loadModel(model) {
     render(model);
 }
@@ -68,10 +155,6 @@ function requestModelFile(path) {
             console.log(`Loading model '${path}'...`);
             loadModel(JSON.parse(response));
         });
-}
-
-function getHashComponent(hash) {
-    return decodeURIComponent(hash).replace(/^#/, '');
 }
 
 function handleHashChange(e) {
@@ -168,3 +251,4 @@ function render(model) {
     updateCanvasSize();
     json2gfx(canvas, model);
 }
+*/
