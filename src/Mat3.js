@@ -18,6 +18,7 @@ export default {
     rotationY,
     rotationZ,
     scale,
+    lookAt
 };
 
 function parse(value) {
@@ -153,5 +154,17 @@ function scale(v) {
         v[0], 0, 0,
         0, v[1], 0,
         0, 0, v[2],
+    ]);
+}
+
+function lookAt(eye, target, up) {
+    const forward = Vec3.normalize(Vec3.sub(eye, target));
+    const right = Vec3.cross(up, forward);
+    up = Vec3.cross(forward, right);
+
+    return new Float32Array([
+        ...right,
+        ...up,
+        ...forward,
     ]);
 }
