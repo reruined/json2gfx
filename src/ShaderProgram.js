@@ -26,7 +26,7 @@ function compile(gl, ...shaders) {
     program.uniforms.projection = gl.getUniformLocation(program, 'uProjection');
     program.uniforms.color = gl.getUniformLocation(program, 'uColor');
 
-    console.log('ShaderProgram.compile() succeeded');
+    // console.log('ShaderProgram.compile() succeeded');
 
     return program;
 }
