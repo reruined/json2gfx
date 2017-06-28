@@ -24,7 +24,9 @@
 
     "camera": {
         "fov": 90,
-        "position": [0, 2, 2],
-        "near": 0.1
+        "near": 0.1,
+        "far": 100,
+        "position": [0, 3, 3],
+        "lookat": [0, 1, 0]
     }
 }

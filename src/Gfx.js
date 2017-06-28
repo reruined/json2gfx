@@ -193,6 +193,10 @@ function getGlobalRotationMatrix(object) {
         return Mat3.identity();
     }
 
+    if('lookat' in object) {
+        return Mat3.lookAt(getGlobalPosition(object), object.lookat, [0, 1, 0]);
+    }
+
     const globalParentRotation = getGlobalRotationMatrix(object.parent);
     const localRotation = getLocalRotationMatrix(object);
     return Mat3.multiply(globalParentRotation, localRotation);
