@@ -1,0 +1,13 @@
+{
+    "just-text": "blabla",
+    "super1": {
+        "sub1": "derps!"
+    },
+    "super2": {
+        "sub2": {
+            "subsub2": {
+                "position": [1, 2, 3]
+            }
+        }
+    }
+}
