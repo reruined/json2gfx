@@ -1,11 +1,14 @@
 'use strict';
 
 import './style.css';
+import Random from 'random-js';
+import Type from './Type.js';
 import Gfx from './Gfx.js';
 import GlMesh from './GlMesh.js';
 import Mesh from './Mesh.js';
 import Shader from './Shader.js';
 import ShaderProgram from './ShaderProgram.js';
+import Vec3 from './Vec3.js';
 
 const modules = {};
 const canvas = document.querySelector('canvas');
@@ -72,15 +75,48 @@ function createScene() {
         .map(key => ({ key: key, value: model[key] }))
         // merge key and value into a new node
         .map(pair => Object.assign({}, pair.value, { key: pair.key }));
+
+    // expand all templates into nodes
+    nodes
+        .filter(node => 'template' in node)
+        .map(node => {
+            const template = node.template;
+            template.parent = node.key;
+            delete node.template;
+            return template;
+        })
+        .map(template => {
+            const engine = Random.engines.mt19937().seed(template.seed);
+            const instances = Array(template.count)
+                .fill(0).map((_, index) => index)
+                .map(index => {
+                    return {
+                        key: `${template.parent}.${index.toString()}`,
+                        position: randomVec3(engine, template.position.min, template.position.max),
+                        orientation: randomVec3(engine, template.orientation.min, template.orientation.max)
+                    };
+                })
+                .map(instance => Object.assign({}, template, instance));
+
+            return instances;
+        })
+        .reduce((accumulator, instances) => {
+            accumulator.push(...instances)
+            return accumulator;
+        }, nodes);
+
     console.log(`Created ${nodes.length} nodes`);
 
     // resolve parents
-    nodes.forEach(node => {
-        if('parent' in node) {
+    nodes
+        .filter(node => Type.isString(node.parent))
+        .forEach(node => {
             const parent = nodes.find(item => item.key === node.parent.substr(1));
             node.parent = parent;
-        }
-    });
+        });
+
+
+    // remove template nodes from
 
     // calculate globalTransform for all nodes
     nodes.forEach(node => node.globalTransform = Gfx.getGlobalTransform(node));
@@ -129,6 +165,17 @@ function renderScene() {
     console.time('Scene rendering');
     Gfx.renderScene(canvas, scene);
     console.timeEnd('Scene rendering');
+}
+
+function randomVec3(engine, min, max) {
+    const distX = Random.real(min[0], max[0], true);
+    const distY = Random.real(min[1], max[1], true);
+    const distZ = Random.real(min[2], max[2], true);
+    return Vec3.fromValues(
+        distX(engine),
+        distY(engine),
+        distZ(engine)
+    );
 }
 
 function getHashComponent(hash) {
