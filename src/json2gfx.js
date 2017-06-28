@@ -11,20 +11,20 @@ import Type from './Type.js';
 import Mesh from './Mesh.js';
 import ObjectUtils from './ObjectUtils.js';
 
-import gAmbientVertSrc from './ambient.vert';
-import gAmbientFragSrc from './ambient.frag';
+import gAmbientVertSrc from '../content/shaders/ambient.vert';
+import gAmbientFragSrc from '../content/shaders/ambient.frag';
 
-import gPointlightVertSrc from './pointlight.vert';
-import gPointlightFragSrc from './pointlight.frag';
+import gPointlightVertSrc from '../content/shaders/pointlight.vert';
+import gPointlightFragSrc from '../content/shaders/pointlight.frag';
 
-import gSunlightVertSrc from './sunlight.vert';
-import gSunlightFragSrc from './sunlight.frag';
+import gSunlightVertSrc from '../content/shaders/sunlight.vert';
+import gSunlightFragSrc from '../content/shaders/sunlight.frag';
 
-import gShadowVertSrc from './shadow.vert';
-import gShadowFragSrc from './shadow.frag';
+import gShadowVertSrc from '../content/shaders/shadow.vert';
+import gShadowFragSrc from '../content/shaders/shadow.frag';
 
-import gDebugUvVertSrc from './debug-uv.vert';
-import gDebugUvFragSrc from './debug-uv.frag';
+import gDebugUvVertSrc from '../content/shaders/debug-uv.vert';
+import gDebugUvFragSrc from '../content/shaders/debug-uv.frag';
 
 import gSandImage from './sand.jpg';
 import gSand2Image from './sand2.jpg';
