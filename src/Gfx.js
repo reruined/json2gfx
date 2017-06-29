@@ -59,7 +59,7 @@ function renderNode(gl, node, camera) {
                 projection: camera.projection,
                 view: Mat4.inverse(camera.globalTransform),
                 world: node.globalTransform,
-                albedo: node.albedo
+                albedo: getAlbedo(node)
             }
         });
     }
@@ -240,4 +240,8 @@ function getProjectionMatrix(camera, ar) {
     const hFov = 2 * Math.atan(Math.tan(fov / 2) / ar);
 
     return Mat4.perspective(ar, hFov, near, far);
+}
+
+function getAlbedo(object) {
+    return 'albedo' in object? object.albedo : [1, 1, 1, 1]
 }
