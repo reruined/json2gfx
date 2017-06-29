@@ -104,6 +104,7 @@ function createScene() {
                 .fill(0).map((_, index) => index)
                 .map(index => {
                     return {
+                        parent: `@${template.parent}`,
                         key: `${template.parent}.${index.toString()}`,
                         position: randomVec3(engine, template.position.min, template.position.max),
                         orientation: randomVec3(engine, template.orientation.min, template.orientation.max)
