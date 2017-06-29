@@ -67,14 +67,17 @@ function renderNode(gl, node, camera) {
 
 function drawMesh(gl, mesh, {shaderProgram, uniforms}) {
     console.assert(gl);
-    console.assert(Type.isObject(mesh));
     console.assert(shaderProgram);
+    console.assert(Type.isObject(mesh));
+    console.assert('layout' in mesh);
+    console.assert('vertexCount' in mesh);
+    console.assert('mode' in mesh);
 
     gl.useProgram(shaderProgram);
     bindLayout(gl, shaderProgram, mesh.layout);
 
     uploadUniforms(gl, shaderProgram, uniforms);
-    gl.drawArrays(gl.TRIANGLES, 0, mesh.vertexCount);
+    gl.drawArrays(mesh.mode, 0, mesh.vertexCount);
 
     unbindLayout(mesh.layout);
     gl.useProgram(null);
@@ -123,6 +126,10 @@ function commitUniform(gl, location, value, key) {
 }
 
 function bindLayout(gl, program, layout) {
+    console.assert(gl);
+    console.assert(gl.isProgram(program));
+    console.assert(Type.isArray(layout));
+
     layout.forEach(item => {
         const location = gl.getAttribLocation(program, item.key);
         if(location !== -1) {
