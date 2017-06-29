@@ -68,6 +68,19 @@ function createScene() {
     const gl = Gfx.getGlContext(canvas);
 
     console.time('Scene creation');
+
+    // extract nodes from 'children' arrays
+    Object.keys(model)
+        .map(key => ({ key: key, value: model[key] }))
+        .filter(pair => 'children' in pair.value)
+        .forEach(pair => {
+            pair.value.children.forEach((child, index) => {
+                child.parent = `@${pair.key}`;
+                model[`${pair.key}.${index}`] = child;
+            });
+            delete pair.value.children;
+        });
+
     // create an array of nodes, with keys, from the source object
     const nodes = Object
         .keys(model)

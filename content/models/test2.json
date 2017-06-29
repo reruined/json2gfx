@@ -22,10 +22,25 @@
         ]
     },
 
+    "boxGeometry": {
+        "shapes": [
+            {
+                "shape": "cube"
+            }
+        ]
+    },
+
     "floor": {
         "geometry": "@floorGeometry",
         "albedo": [1, 1, 1, 1],
-        "position": [0, 0, 0]
+        "position": [0, 0, 0],
+
+        "children": [
+            {
+                "albedo": [1, 0, 0, 1],
+                "geometry": "@boxGeometry"
+            }
+        ]
     },
 
     "grassCluster": {
