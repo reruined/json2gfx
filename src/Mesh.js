@@ -164,17 +164,21 @@ const NORMALS = {
 
 function fromGeometry(geometry) {
     console.assert(Type.isObject(geometry));
+    console.assert(Type.isArray(geometry.shapes));
 
-    const orientation = 'orientation' in geometry ? geometry.orientation : Vec3.zero();
-    const scale = 'scale' in geometry ? geometry.scale : [1, 1, 1];
-    const position = 'position' in geometry ? geometry.position: Vec3.zero();
+    const vertices = geometry.shapes.map(shape => {
+        const orientation = 'orientation' in shape ? shape.orientation : Vec3.zero();
+        const scale = 'scale' in shape ? shape.scale : [1, 1, 1];
+        const position = 'position' in shape ? shape.position: Vec3.zero();
 
-    const shape = geometry.shape || geometry.shapes[0];
-    const rotation = Mat3.multiply(Mat3.fromEulerAngles(orientation), Mat3.scale(scale));
-    const vertices = getVertices(shape)
-        .map(v => transformVertex(v, rotation, position));
+        const rotation = Mat3.multiply(Mat3.fromEulerAngles(orientation), Mat3.scale(scale));
+        const vertices = getVertices(shape.shape)
+            .map(v => transformVertex(v, rotation, position));
 
-    return { vertices: vertices, mode: 'TRIANGLES' };
+        return vertices;
+    });
+
+    return { vertices: Array().concat(...vertices), mode: 'TRIANGLES' };
 }
 
 function getVertices(shape) {

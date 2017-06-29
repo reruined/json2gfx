@@ -1,14 +1,25 @@
 {
     "floorGeometry": {
-        "shape": "quad",
-        "orientation": [-90, 0, 0],
-        "scale": [10, 1, 10]
+        "shapes": [{
+            "shape": "quad",
+            "orientation": [-90, 0, 0],
+            "scale": [10, 1, 10]
+        }]
     },
 
     "grassClusterGeometry": {
-        "shape": "cube",
-        "position": [0, 0.5, 0],
-        "scale": [1, 1, 0]
+        "shapes": [
+            {
+                "shape": "triangle",
+                "position": [0, 0.5, 0],
+                "scale": [1, 1, 0]
+            },
+            {
+                "shape": "triangle",
+                "position": [-0.2, 0.5, 0],
+                "scale": [1, 1, 0]
+            }
+        ]
     },
 
     "floor": {
