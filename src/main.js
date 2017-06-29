@@ -107,6 +107,16 @@ function createScene() {
 
     console.log(`Created ${nodes.length} nodes`);
 
+    // resolve references
+    nodes
+        .forEach(node => {
+            Object.keys(node)
+                .filter(key => Type.isString(node[key]))
+                .filter(key => node[key].startsWith('@'))
+                .map(key => ({ key: key, ref: node[key].substr(1) }))
+                .forEach(pair => node[pair.key] = nodes.find(item => item.key === pair.ref));
+        });
+
     // resolve parents
     nodes
         .filter(node => Type.isString(node.parent))
