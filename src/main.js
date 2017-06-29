@@ -61,6 +61,48 @@ function reloadModel() {
     renderScene();
 }
 
+function expandTemplates(object) {
+    Object.keys(object)
+        .map(key => ({ key: key, value: object[key] }))
+        .filter(pair => isTemplate(pair.value))
+        .forEach(pair => {
+            console.assert(isTemplate(pair.value));
+
+            const engine = Random.engines.mt19937().seed(pair.value.seed);
+            object[pair.key] = Array(pair.value.count).fill(null)
+                .map(() => {
+                    return Object.assign({}, pair.value.template, {
+                        position: randomVec3(engine, pair.value.position.min, pair.value.position.max),
+                        orientation: randomVec3(engine, pair.value.orientation.min, pair.value.orientation.max),
+                    });
+                });
+        });
+
+    Object.values(object)
+        .filter(Type.isObject)
+        .filter(value => !Type.isArray(value))
+        .forEach(expandTemplates);
+}
+
+ function isTemplate(value) {
+     if(!Type.isObject(value)) {
+         return false;
+     }
+
+     if(Type.isArray(value)) {
+         return false;
+     }
+
+     if('template' in value === false) {
+         return false;
+     }
+
+     console.assert(Type.isNumber(value.count));
+     console.assert(Type.isNumber(value.seed));
+
+     return true;
+ }
+
 function createScene() {
     const pathToModelFile = `./${getHashComponent(window.location.hash)}`;
     const model = modules['./models/test2.json'];
@@ -68,6 +110,9 @@ function createScene() {
     const gl = Gfx.getGlContext(canvas);
 
     console.time('Scene creation');
+
+    // expand templates
+    expandTemplates(model);
 
     // extract nodes from 'children' arrays
     Object.keys(model)
@@ -88,37 +133,6 @@ function createScene() {
         .map(key => ({ key: key, value: model[key] }))
         // merge key and value into a new node
         .map(pair => Object.assign({}, pair.value, { key: pair.key }));
-
-    // expand all templates into nodes
-    nodes
-        .filter(node => 'template' in node)
-        .map(node => {
-            const template = node.template;
-            template.parent = node.key;
-            delete node.template;
-            return template;
-        })
-        .map(template => {
-            const engine = Random.engines.mt19937().seed(template.seed);
-            const instances = Array(template.count)
-                .fill(0).map((_, index) => index)
-                .map(index => {
-                    return {
-                        parent: `@${template.parent}`,
-                        key: `${template.parent}.${index.toString()}`,
-                        position: randomVec3(engine, template.position.min, template.position.max),
-                        orientation: randomVec3(engine, template.orientation.min, template.orientation.max)
-                    };
-                })
-                .map(instance => Object.assign({}, template, instance));
-
-            return instances;
-        })
-        .reduce((accumulator, instances) => {
-            accumulator.push(...instances)
-            return accumulator;
-        }, nodes);
-
     console.log(`Created ${nodes.length} nodes`);
 
     // resolve references
