@@ -38,7 +38,7 @@
     "floor": {
         "shadow": false,
         "geometry": "@floorGeometry",
-        "albedo": [1, 1, 1, 1],
+        "albedo": "white",
         "position": [0, -0.01, 0]
     },
 
@@ -49,7 +49,7 @@
 
         "children": {
             "template": {
-                "albedo": [0, 1, 0, 1],
+                "albedo": "green",
                 "geometry": "@grassClusterGeometry"
             },
             "position": {

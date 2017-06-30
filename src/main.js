@@ -10,6 +10,7 @@ import Mesh from './Mesh.js';
 import Shader from './Shader.js';
 import ShaderProgram from './ShaderProgram.js';
 import Vec3 from './Vec3.js';
+import Vec4 from './Vec4.js';
 
 const modules = {};
 const canvas = document.querySelector('canvas');
@@ -123,6 +124,18 @@ function convertDegreesToRadians(object) {
         .forEach(pair => convertDegreesToRadians(pair.value));
 }
 
+function convertColorsToRGBA(object) {
+    Object.keys(object)
+        .map(key => ({ key: key, value: object[key] }))
+        .filter(pair => pair.key === 'albedo')
+        .forEach(pair => object[pair.key] = parseColor(pair.value));
+
+    Object.keys(object)
+        .map(key => ({ key: key, value: object[key] }))
+        .filter(pair => Type.isObject(pair.value))
+        .forEach(pair => convertColorsToRGBA(pair.value));
+}
+
 function createScene() {
     const pathToModelFile = `./${getHashComponent(window.location.hash)}`;
     const model = JSON.parse(JSON.stringify(modules['./models/test2.json']));
@@ -130,6 +143,9 @@ function createScene() {
     const gl = Gfx.getGlContext(canvas);
 
     console.time('Scene creation');
+
+    // convert albedos to RGBA
+    convertColorsToRGBA(model);
 
     // expand templates
     expandTemplates(model);
@@ -241,6 +257,29 @@ function randomVec3(engine, min, max) {
 
 function getHashComponent(hash) {
     return decodeURIComponent(hash).replace(/^#/, '');
+}
+
+function parseColor(value) {
+    if(Type.isString(value)) {
+        return Vec4.parse(convertNameToColor(value));
+    }
+
+    return Vec4.parse(value);
+}
+
+function convertNameToColor(colorName) {
+    const element = document.createElement('div');
+    element.style.color = colorName;
+
+    document.body.appendChild(element);
+    const rawColor = getComputedStyle(element).color;
+    document.body.removeChild(element);
+
+    const color = rawColor.match(/\d+/g)
+        .map(item => parseInt(item))
+        .map(item => item / 255);
+
+    return color;
 }
 
 /*
