@@ -20,9 +20,9 @@ let totalTimeLastFrame = null;
 init();
 
 function init() {
-    canvas.addEventListener('click', renderScene);
+    // canvas.addEventListener('click', renderScene);
     window.addEventListener('hashchange', reloadModel);
-    window.addEventListener('resize', renderScene);
+    // window.addEventListener('resize', renderScene);
 
     initContentHmr();
     reloadModel();
