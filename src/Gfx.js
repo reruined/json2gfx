@@ -15,6 +15,9 @@ export default {
 };
 
 function renderScene(canvas, scene, time) {
+    console.assert(Type.isObject(time));
+    console.assert(Type.isNumber(time.total));
+    console.assert(Type.isNumber(time.delta));
     // console.group('Gfx');
 
     updateCanvasSize(canvas);

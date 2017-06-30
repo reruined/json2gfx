@@ -26,6 +26,7 @@ function init() {
 
     initContentHmr();
     reloadModel();
+    renderScene();
 }
 
 function initContentHmr() {
@@ -61,7 +62,7 @@ function initContentHmr() {
 
 function reloadModel() {
     scene = createScene();
-    renderScene();
+    // renderScene();
 }
 
 function expandTemplates(object) {
@@ -262,7 +263,7 @@ function createScene() {
     return scene;
 }
 
-function renderScene(totalTime) {
+function renderScene(totalTime = 0) {
     if(Type.isNumber(totalTimeLastFrame)) {
         // console.time('Scene rendering');
         const time = {
