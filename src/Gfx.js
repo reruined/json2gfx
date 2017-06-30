@@ -1,3 +1,5 @@
+'use strict';
+
 import Type from './Type.js';
 import MathUtils from './MathUtils.js';
 import Mat3 from './Mat3.js';
