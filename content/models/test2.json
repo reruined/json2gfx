@@ -38,18 +38,18 @@
     "floor": {
         "shadow": false,
         "geometry": "@floorGeometry",
-        "albedo": "white",
+        "albedo": "#B86A22",
         "position": [0, -0.01, 0]
     },
 
-    "grassCluster": {
+    "brownGrassCluster": {
         "parent": "@floor",
         "position": [0, 0, 0],
         "orientation": [0, 0, 0],
 
         "children": {
             "template": {
-                "albedo": "green",
+                "albedo": "#E9842C",
                 "geometry": "@grassClusterGeometry"
             },
             "position": {
@@ -69,6 +69,33 @@
         }
     },
 
+    "purpleGrassCluster": {
+        "parent": "@floor",
+        "position": [0, 0, 0],
+        "orientation": [0, 90, 0],
+
+        "children": {
+            "template": {
+                "albedo": "#775BD4",
+                "geometry": "@grassClusterGeometry"
+            },
+            "position": {
+                "min": [-15, 0, -15],
+                "max": [15, 0, 15]
+            },
+            "orientation": {
+                "min": [0, -90, 0],
+                "max": [0, 90, 0]
+            },
+            "scale": {
+                "min": [1, 1, 1],
+                "max": [1, 1, 1]
+            },
+            "count": 20,
+            "seed": 502
+        }
+    },
+
     "sun": {
         "light": {
             "type": "directional",
@@ -79,10 +106,10 @@
     },
 
     "camera": {
-        "fov": 60,
+        "fov": 90,
         "near": 0.1,
         "far": 100,
-        "position": [0, 8, 30],
+        "position": [0, 15, 30],
         "lookat": [0, 0, 0]
     }
 }
