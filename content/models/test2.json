@@ -3,7 +3,7 @@
         "shapes": [{
             "shape": "quad",
             "orientation": [-90, 0, 0],
-            "scale": [12, 12, 1]
+            "scale": [32, 32, 1]
         }]
     },
 
@@ -52,27 +52,27 @@
                 "geometry": "@grassClusterGeometry"
             },
             "position": {
-                "min": [0, 0, 0],
-                "max": [0, 0, 0]
+                "min": [-15, 0, -15],
+                "max": [15, 0, 15]
             },
             "orientation": {
-                "min": [0, 0, 0],
-                "max": [0, 0, 0]
+                "min": [0, -90, 0],
+                "max": [0, 90, 0]
             },
             "scale": {
                 "min": [1, 1, 1],
                 "max": [1, 1, 1]
             },
-            "count": 1,
+            "count": 40,
             "seed": 502
         }
     },
 
     "camera": {
-        "fov": 90,
+        "fov": 60,
         "near": 0.1,
         "far": 100,
-        "position": [0, 3, 3],
-        "lookat": [0, 1, 0]
+        "position": [0, 8, 30],
+        "lookat": [0, 0, 0]
     }
 }
