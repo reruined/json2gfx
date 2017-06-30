@@ -218,20 +218,36 @@ function createScene() {
         .filter(node => 'mesh' in node)
         .forEach(node => delete node.geometry);
 
-    // create shader programs for all nodes
-    const programs = nodes
-        .map(node => 'light' in node ? 'sunlight' : 'ambient')
-        .map(programName => {
-            const vsSrc = resources[`./shaders/${programName}.vert`];
-            const fsSrc = resources[`./shaders/${programName}.frag`];
-            const vs = Shader.compile(gl, gl.VERTEX_SHADER, vsSrc);
-            const fs = Shader.compile(gl, gl.FRAGMENT_SHADER, fsSrc);
-            return ShaderProgram.compile(gl, vs, fs);
-        });
-    console.log(`Compiled ${programs.length} shader programs`);
+    // assign default program names to all nodes
+    nodes
+        .filter(node => 'mesh' in node)
+        .forEach(node => node.shaderProgram = 'ambient');
+    nodes
+        .filter(node => 'light' in node)
+        .forEach(node => node.shaderProgram = 'sunlight');
 
-    // assign shaders to nodes
-    nodes.forEach((node, index) => node.shaderProgram = programs[index]);
+    // compile unique programs
+    const programs = nodes
+        .filter(node => 'shaderProgram' in node)
+        .map(node => node.shaderProgram)
+        .reduce((compiledPrograms, programName) => {
+            if(programName in compiledPrograms === false) {
+                const vsSrc = resources[`./shaders/${programName}.vert`];
+                const fsSrc = resources[`./shaders/${programName}.frag`];
+                const vs = Shader.compile(gl, gl.VERTEX_SHADER, vsSrc);
+                const fs = Shader.compile(gl, gl.FRAGMENT_SHADER, fsSrc);
+                const program = ShaderProgram.compile(gl, vs, fs);
+                compiledPrograms[programName] = program;
+            }
+
+            return compiledPrograms;
+        }, {});
+    console.log(`Compiled ${Object.keys(programs).length} shader programs`);
+
+    // assign programs to nodes
+    nodes
+        .filter(node => 'shaderProgram' in node)
+        .forEach(node => node.shaderProgram = programs[node.shaderProgram]);
 
     const scene = { nodes };
     console.timeEnd('Scene creation');
