@@ -172,9 +172,11 @@ function fromGeometry(geometry) {
         const scale = 'scale' in shape ? shape.scale : [1, 1, 1];
         const position = 'position' in shape ? shape.position: Vec3.zero();
 
-        const rotation = Mat3.multiply(Mat3.scale(scale), Mat3.fromEulerAngles(orientation));
+        //const rotation = Mat3.multiply(Mat3.scale(scale), Mat3.fromEulerAngles(orientation));
+        const rotation = Mat3.fromEulerAngles(orientation);
+        const scaleMatrix = Mat3.scale(scale);
         const vertices = getVertices(shape.shape)
-            .map(v => transformVertex(v, rotation, position));
+            .map(v => transformVertex(v, position, rotation, scaleMatrix));
 
         return vertices;
     });
@@ -197,10 +199,13 @@ function getVertices(shape) {
         });
 }
 
-function transformVertex(vertex, rotation, translation) {
+function transformVertex(vertex, translation, rotation, scale) {
     const newVertex = {};
     if('position' in vertex) {
-        newVertex.position = Vec3.add(Vec3.transform(vertex.position, rotation), translation);
+        newVertex.position = Vec3.clone(vertex.position);
+        newVertex.position = Vec3.transform(newVertex.position, scale);
+        newVertex.position = Vec3.transform(newVertex.position, rotation);
+        newVertex.position = Vec3.add(newVertex.position, translation);
     }
     if('normal' in vertex) {
         newVertex.normal = Vec3.transform(vertex.normal, rotation);

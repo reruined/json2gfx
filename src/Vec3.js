@@ -13,7 +13,12 @@ export default {
     one,
     transform,
     scale,
+    clone,
 };
+
+function clone(v) {
+    return fromValues(...v);
+}
 
 function parse(value) {
     if(value instanceof Float32Array) {
