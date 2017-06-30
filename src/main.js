@@ -125,7 +125,7 @@ function convertDegreesToRadians(object) {
 
 function createScene() {
     const pathToModelFile = `./${getHashComponent(window.location.hash)}`;
-    const model = modules['./models/test2.json'];
+    const model = JSON.parse(JSON.stringify(modules['./models/test2.json']));
     const resources = modules;
     const gl = Gfx.getGlContext(canvas);
 
