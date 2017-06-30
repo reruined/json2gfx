@@ -164,10 +164,12 @@ function drawMesh(gl, mesh, {shaderProgram, uniforms}) {
 }
 
 function uploadUniforms(gl, program, uniforms) {
+    console.assert('uniformLocations' in program);
+
     Object
         .keys(uniforms)
         .map(key => ({
-            location: gl.getUniformLocation(program, key),
+            location: program.uniformLocations[key],
             key: key,
             value: uniforms[key]
         }))
