@@ -207,7 +207,7 @@ function commitUniform(gl, location, value, key) {
 
 function bindLayout(gl, program, layout) {
     console.assert(gl);
-    console.assert(gl.isProgram(program));
+    console.assert(program);
     console.assert(Type.isArray(layout));
 
     layout.forEach(item => {
