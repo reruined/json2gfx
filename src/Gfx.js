@@ -1,5 +1,6 @@
 'use strict';
 
+import Log from './Log.js';
 import Type from './Type.js';
 import MathUtils from './MathUtils.js';
 import Mat3 from './Mat3.js';
@@ -13,11 +14,11 @@ export default {
     getGlobalTransform
 };
 
-function renderScene(canvas, scene) {
-    console.group('Gfx');
+function renderScene(canvas, scene, time) {
+    // console.group('Gfx');
 
     updateCanvasSize(canvas);
-    console.log(`resized canvas to [${canvas.width.toFixed(0)}, ${canvas.height.toFixed(0)}]`);
+    Log.verbose(`resized canvas to [${canvas.width.toFixed(0)}, ${canvas.height.toFixed(0)}]`);
 
     const gl = getGlContext(canvas);
     gl.enable(gl.DEPTH_TEST);
@@ -27,27 +28,27 @@ function renderScene(canvas, scene) {
 
     const clearColor = getClearColor(scene);
     clear(gl, clearColor);
-    console.log(`cleared canvas with color: [${clearColor.map(num => num.toFixed(0)).join(', ')}]`);
+    Log.verbose(`cleared canvas with color: [${clearColor.map(num => num.toFixed(0)).join(', ')}]`);
 
     const camera = getActiveCamera(scene);
     camera.projection = getProjectionMatrix(camera, gl.canvas.width / gl.canvas.height);
 
-    console.log('context:', gl);
-    console.log('camera:', camera);
-    console.log('scene:', scene);
+    Log.verbose('context:', gl);
+    Log.verbose('camera:', camera);
+    Log.verbose('scene:', scene);
 
     const visibleNodes = scene.nodes.filter(isVisible);
     const meshNodes = visibleNodes.filter(hasMesh);
     const lightNodes = visibleNodes.filter(hasLight);
 
     meshNodes.forEach(meshNode => {
-            console.log(`rendering mesh node: ${meshNode.key}`);
-            renderNode(gl, meshNode, camera);
-        });
+        Log.verbose(`rendering mesh node: ${meshNode.key}`);
+        renderNode(gl, meshNode, camera, time);
+    });
 
     lightNodes.forEach(lightNode => {
-        console.log(`rendering light node: ${lightNode.key}`);
-        renderLight(gl, lightNode, meshNodes, camera);
+        Log.verbose(`rendering light node: ${lightNode.key}`);
+        renderLight(gl, lightNode, meshNodes, camera, time);
     });
 
     console.groupEnd();
@@ -58,7 +59,7 @@ function clear(gl, color) {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 }
 
-function renderNode(gl, node, camera) {
+function renderNode(gl, node, camera, time) {
     console.assert(hasMesh(node));
 
     if(hasMesh(node)) {
@@ -68,7 +69,8 @@ function renderNode(gl, node, camera) {
                 projection: camera.projection,
                 view: Mat4.inverse(camera.globalTransform),
                 world: node.globalTransform,
-                albedo: getAlbedo(node)
+                albedo: getAlbedo(node),
+                totalTime: time.total
             }
         });
     }
@@ -96,12 +98,13 @@ function renderProjectedShadow(gl, light, props = {}) {
             world: t,
             view: props.uniforms.view,
             projection: props.uniforms.projection,
-            albedo: new Float32Array(Vec4.zero())
+            albedo: new Float32Array(Vec4.zero()),
+            totalTime: props.uniforms.totalTime
         }
     });
 }
 
-function renderLight(gl, lightNode, meshNodes, camera) {
+function renderLight(gl, lightNode, meshNodes, camera, time) {
     console.assert(gl);
     console.assert(hasLight(lightNode));
     console.assert(Type.isArray(meshNodes));
@@ -115,7 +118,8 @@ function renderLight(gl, lightNode, meshNodes, camera) {
                 shadowCaster: shadowCaster,
                 uniforms: {
                     view: Mat4.inverse(camera.globalTransform),
-                    projection: camera.projection
+                    projection: camera.projection,
+                    totalTime: time.total
                 }
             });
         });
@@ -134,6 +138,7 @@ function renderLight(gl, lightNode, meshNodes, camera) {
                 lightColor: new Float32Array([1, 1, 1, 1]),
                 lightDirection: new Float32Array(lightNode.light.direction),
                 lightIntensity: lightNode.light.intensity,
+                totalTime: time.total
             }
         });
     });
@@ -182,12 +187,12 @@ function commitUniform(gl, location, value, key) {
     console.assert(!Type.isNull(value));
 
     if(Type.isNumber(value)) {
-        if(Number.isInteger(value) && key != 'uvScale') {
-            gl.uniform1i(location, value);
-        }
-        else {
-            gl.uniform1f(location, value);
-        }
+        // if(Number.isInteger(value) && key != 'uvScale') {
+        //gl.uniform1i(location, value);
+        // }
+        // else {
+        gl.uniform1f(location, value);
+        // }
     }
     if(value.length === 16) {
         gl.uniformMatrix4fv(location, false, value);

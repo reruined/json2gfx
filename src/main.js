@@ -15,6 +15,7 @@ import Vec4 from './Vec4.js';
 const modules = {};
 const canvas = document.querySelector('canvas');
 let scene = null;
+let totalTimeLastFrame = null;
 
 init();
 
@@ -238,10 +239,20 @@ function createScene() {
     return scene;
 }
 
-function renderScene() {
-    console.time('Scene rendering');
-    Gfx.renderScene(canvas, scene);
-    console.timeEnd('Scene rendering');
+function renderScene(totalTime) {
+    if(Type.isNumber(totalTimeLastFrame)) {
+        // console.time('Scene rendering');
+        const time = {
+            delta: totalTimeLastFrame - totalTime,
+            total: totalTime,
+        };
+        Gfx.renderScene(canvas, scene, time);
+        // console.timeEnd('Scene rendering');
+    }
+
+    totalTimeLastFrame = totalTime;
+
+    requestAnimationFrame(renderScene);
 }
 
 function randomVec3(engine, min, max) {
