@@ -203,7 +203,7 @@ function createScene() {
 
     // create shader programs for all nodes
     const programs = nodes
-        .map(node => 'ambient')
+        .map(node => 'light' in node ? 'sunlight' : 'ambient')
         .map(programName => {
             const vsSrc = resources[`./shaders/${programName}.vert`];
             const fsSrc = resources[`./shaders/${programName}.frag`];

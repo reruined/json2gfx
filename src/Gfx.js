@@ -34,12 +34,18 @@ function renderScene(canvas, scene) {
     console.log('camera:', camera);
     console.log('scene:', scene);
 
-    scene.nodes
-        .filter(isRenderable)
-        .forEach(node => {
-            console.log(`rendering node: ${node.key}`);
-            renderNode(gl, node, camera);
+    const meshNodes = scene.nodes.filter(hasMesh);
+    const lightNodes = scene.nodes.filter(hasLight);
+
+    meshNodes.forEach(meshNode => {
+            console.log(`rendering mesh node: ${meshNode.key}`);
+            renderNode(gl, meshNode, camera);
         });
+
+    lightNodes.forEach(lightNode => {
+        console.log(`rendering light node: ${lightNode.key}`);
+        renderLight(gl, lightNode, meshNodes, camera);
+    });
 
     console.groupEnd();
 }
@@ -50,7 +56,7 @@ function clear(gl, color) {
 }
 
 function renderNode(gl, node, camera) {
-    console.assert(isRenderable(node));
+    console.assert(hasMesh(node));
 
     if(hasMesh(node)) {
         drawMesh(gl, node.mesh, {
@@ -63,6 +69,31 @@ function renderNode(gl, node, camera) {
             }
         });
     }
+}
+
+function renderLight(gl, lightNode, meshNodes, camera) {
+    console.assert(gl);
+    console.assert(hasLight(lightNode));
+    console.assert(Type.isArray(meshNodes));
+    console.assert(Type.isObject(camera));
+
+    gl.blendFunc(gl.ONE, gl.ONE);
+    gl.enable(gl.BLEND);
+    meshNodes.forEach(meshNode => {
+        drawMesh(gl, meshNode.mesh, {
+            shaderProgram: lightNode.shaderProgram,
+            uniforms: {
+                projection: camera.projection,
+                view: Mat4.inverse(camera.globalTransform),
+                world: meshNode.globalTransform,
+                albedo: getAlbedo(meshNode),
+                lightColor: new Float32Array([1, 1, 1, 1]),
+                lightDirection: new Float32Array(lightNode.light.direction),
+                lightIntensity: lightNode.light.intensity,
+            }
+        });
+    });
+    gl.disable(gl.BLEND);
 }
 
 function drawMesh(gl, mesh, {shaderProgram, uniforms}) {
@@ -166,8 +197,8 @@ function hasMesh(object) {
     return 'mesh' in object;
 }
 
-function isRenderable(object) {
-    return 'mesh' in object;
+function hasLight(object) {
+    return 'light' in object;
 }
 
 function getActiveCamera(scene) {

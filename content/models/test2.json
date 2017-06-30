@@ -68,6 +68,15 @@
         }
     },
 
+    "sun": {
+        "light": {
+            "type": "directional",
+            "color": "white",
+            "intensity": 0.5,
+            "direction": [1, -1, -0.4]
+        }
+    },
+
     "camera": {
         "fov": 60,
         "near": 0.1,
