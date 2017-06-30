@@ -3,7 +3,8 @@ import Type from './Type.js';
 export default {
     fromValues,
     dot,
-    parse
+    parse,
+    zero
 };
 
 function parse(value) {

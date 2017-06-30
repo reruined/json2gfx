@@ -73,11 +73,52 @@ function renderNode(gl, node, camera) {
     }
 }
 
+function renderProjectedShadow(gl, light, props = {}) {
+    let lightPos = Vec3.parse(light.direction);
+    lightPos = Vec3.normalize(lightPos);
+    lightPos = Vec3.scale(lightPos, -1);
+    lightPos = Vec3.scale(lightPos, Number.MAX_SAFE_INTEGER);
+    let lightMatrix = new Float32Array([
+        lightPos[1],  0,            0,           0,
+        -lightPos[0], 0, -lightPos[2],          -1,
+        0,            0,  lightPos[1],           0,
+        0,            0,            0, lightPos[1],
+    ]);
+
+    let t = Mat4.identity();
+    t = Mat4.multiply(lightMatrix, t);
+    t = Mat4.multiply(props.shadowCaster.globalTransform, t);
+
+    drawMesh(gl, props.shadowCaster.mesh, {
+        shaderProgram: props.shadowCaster.shaderProgram,
+        uniforms: {
+            world: t,
+            view: props.uniforms.view,
+            projection: props.uniforms.projection,
+            albedo: new Float32Array(Vec4.zero())
+        }
+    });
+}
+
 function renderLight(gl, lightNode, meshNodes, camera) {
     console.assert(gl);
     console.assert(hasLight(lightNode));
     console.assert(Type.isArray(meshNodes));
     console.assert(Type.isObject(camera));
+
+    gl.colorMask(false, false, false, false);
+    meshNodes
+        .filter(isShadowCaster)
+        .forEach(shadowCaster => {
+            renderProjectedShadow(gl, lightNode.light, {
+                shadowCaster: shadowCaster,
+                uniforms: {
+                    view: Mat4.inverse(camera.globalTransform),
+                    projection: camera.projection
+                }
+            });
+        });
+    gl.colorMask(true, true, true, true);
 
     gl.blendFunc(gl.ONE, gl.ONE);
     gl.enable(gl.BLEND);
@@ -193,6 +234,10 @@ function updateCanvasSize(canvas) {
         canvas.width = width;
         canvas.height = height;
     }
+}
+
+function isShadowCaster(object) {
+    return 'shadow' in object ? object.shadow : true;
 }
 
 function hasMesh(object) {
