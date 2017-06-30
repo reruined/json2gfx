@@ -186,7 +186,7 @@ function getGlContext(canvas) {
 function getLocalRotationMatrix(object) {
     console.assert(Type.isObject(object));
 
-    const angles = Vec3.parse(object.orientation).map(MathUtils.degToRad);
+    const angles = Vec3.parse(object.orientation);
     return Mat3.fromEulerAngles(angles);
 }
 

@@ -1,3 +1,4 @@
+import MathUtils from './MathUtils.js';
 import Type from './Type.js';
 import Vec3 from './Vec3.js';
 import Mat3 from './Mat3.js';
@@ -171,7 +172,7 @@ function fromGeometry(geometry) {
         const scale = 'scale' in shape ? shape.scale : [1, 1, 1];
         const position = 'position' in shape ? shape.position: Vec3.zero();
 
-        const rotation = Mat3.multiply(Mat3.fromEulerAngles(orientation), Mat3.scale(scale));
+        const rotation = Mat3.multiply(Mat3.scale(scale), Mat3.fromEulerAngles(orientation));
         const vertices = getVertices(shape.shape)
             .map(v => transformVertex(v, rotation, position));
 

@@ -1,6 +1,7 @@
 'use strict';
 
 import './style.css';
+import MathUtils from './MathUtils.js';
 import Random from 'random-js';
 import Type from './Type.js';
 import Gfx from './Gfx.js';
@@ -71,9 +72,12 @@ function expandTemplates(object) {
             const engine = Random.engines.mt19937().seed(pair.value.seed);
             object[pair.key] = Array(pair.value.count).fill(null)
                 .map(() => {
+                    const minOrientation = pair.value.orientation.min;
+                    const maxOrientation = pair.value.orientation.max;
                     return Object.assign({}, pair.value.template, {
                         position: randomVec3(engine, pair.value.position.min, pair.value.position.max),
-                        orientation: randomVec3(engine, pair.value.orientation.min, pair.value.orientation.max),
+                        orientation: randomVec3(engine, minOrientation, maxOrientation),
+                        scale: randomVec3(engine, pair.value.scale.min, pair.value.scale.max),
                     });
                 });
         });
@@ -103,6 +107,22 @@ function expandTemplates(object) {
      return true;
  }
 
+function convertDegreesToRadians(object) {
+    console.assert(Type.isObject(object));
+
+    Object.keys(object)
+        .map(key => ({ key: key, value: object[key] }))
+        .filter(pair => pair.key.match(/orientation|rotation/))
+        .forEach(pair => {
+            object[pair.key] = pair.value.map(MathUtils.degToRad);
+        });
+
+    Object.keys(object)
+        .map(key => ({ key: key, value: object[key] }))
+        .filter(pair => Type.isObject(pair.value))
+        .forEach(pair => convertDegreesToRadians(pair.value));
+}
+
 function createScene() {
     const pathToModelFile = `./${getHashComponent(window.location.hash)}`;
     const model = modules['./models/test2.json'];
@@ -113,6 +133,9 @@ function createScene() {
 
     // expand templates
     expandTemplates(model);
+
+    // convert degrees to radians
+    convertDegreesToRadians(model);
 
     // extract nodes from 'children' arrays
     Object.keys(model)
