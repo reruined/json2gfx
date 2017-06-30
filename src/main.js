@@ -201,17 +201,24 @@ function createScene() {
     console.log('Calculated global transforms');
 
     // create meshes from geometries
+    let meshCount = 0;
     const meshes = nodes
         .filter(node => 'geometry' in node)
         .map(node => node.geometry)
-        .map(Mesh.fromGeometry)
-        .map(GlMesh.fromMesh.bind(null, gl));
-    console.log(`Created ${meshes.length} meshes`);
+        .reduce((meshes, geometry) => {
+            if(!meshes.get(geometry)) {
+                meshes.set(geometry, GlMesh.fromMesh(gl, Mesh.fromGeometry(geometry)));
+                meshCount++;
+            }
+
+            return meshes;
+        }, new WeakMap());
+    console.log(`Created ${meshCount} meshes`);
 
     // assign meshes to nodes
     nodes
         .filter(node => 'geometry' in node)
-        .forEach((node, index) => node.mesh = meshes[index]);
+        .forEach(node => node.mesh = meshes.get(node.geometry));
 
     // delete geometry from all nodes with a mesh
     nodes
