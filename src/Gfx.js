@@ -36,8 +36,9 @@ function renderScene(canvas, scene) {
     console.log('camera:', camera);
     console.log('scene:', scene);
 
-    const meshNodes = scene.nodes.filter(hasMesh);
-    const lightNodes = scene.nodes.filter(hasLight);
+    const visibleNodes = scene.nodes.filter(isVisible);
+    const meshNodes = visibleNodes.filter(hasMesh);
+    const lightNodes = visibleNodes.filter(hasLight);
 
     meshNodes.forEach(meshNode => {
             console.log(`rendering mesh node: ${meshNode.key}`);
@@ -234,6 +235,13 @@ function updateCanvasSize(canvas) {
         canvas.width = width;
         canvas.height = height;
     }
+}
+
+function isVisible(object) {
+    const parentVisible = 'parent' in object ? isVisible(object.parent) : true;
+    const visible = 'visible' in object ? object.visible : true;
+
+    return parentVisible && visible;
 }
 
 function isShadowCaster(object) {
