@@ -90,24 +90,24 @@ function expandTemplates(object) {
         .forEach(expandTemplates);
 }
 
- function isTemplate(value) {
-     if(!Type.isObject(value)) {
-         return false;
-     }
+function isTemplate(value) {
+    if(!Type.isObject(value)) {
+        return false;
+    }
 
-     if(Type.isArray(value)) {
-         return false;
-     }
+    if(Type.isArray(value)) {
+        return false;
+    }
 
-     if('template' in value === false) {
-         return false;
-     }
+    if('template' in value === false) {
+        return false;
+    }
 
-     console.assert(Type.isNumber(value.count));
-     console.assert(Type.isNumber(value.seed));
+    console.assert(Type.isNumber(value.count));
+    console.assert(Type.isNumber(value.seed));
 
-     return true;
- }
+    return true;
+}
 
 function convertDegreesToRadians(object) {
     console.assert(Type.isObject(object));
