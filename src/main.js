@@ -13,20 +13,28 @@ import Vec3 from './Vec3.js';
 import Vec4 from './Vec4.js';
 
 const modules = {};
-const canvas = document.querySelector('canvas');
-let scene = null;
-let totalTimeLastFrame = null;
+let animationFrameId = null;
 
+initContentHmr();
 init();
 
 function init() {
-    // canvas.addEventListener('click', renderScene);
-    window.addEventListener('hashchange', reloadModel);
-    // window.addEventListener('resize', renderScene);
+    const canvas = document.querySelector('canvas');
 
-    initContentHmr();
-    reloadModel();
-    renderScene();
+    canvas.addEventListener('click', handleClick);
+    window.addEventListener('hashchange', handleHashChange);
+    window.addEventListener('resize', handleResize);
+
+    restart();
+}
+
+function restart() {
+    console.log('%cRestarting...', 'font-weight:bold');
+    const canvas = document.querySelector('canvas');
+    const scene = loadScene(canvas, getUrlParameters(window.location));
+
+    cancelAnimationFrame(animationFrameId);
+    startRenderLoop(canvas, scene, getUrlParameters(window.location));
 }
 
 function initContentHmr() {
@@ -44,8 +52,6 @@ function initContentHmr() {
 
             changedModules.forEach(pair => {
                 modules[pair.key] = pair.module;
-
-                reloadModel();
                 /*
                 if(getHashComponent(window.location.hash) === pair.key.replace(/^\.\//, '')) {
                     reloadModel();
@@ -56,13 +62,21 @@ function initContentHmr() {
                 }
                 */
             });
+            restart();
         });
     }
 }
 
-function reloadModel() {
-    scene = createScene();
-    // renderScene();
+function handleClick() {
+    restart();
+}
+
+function handleHashChange() {
+    restart();
+}
+
+function handleResize() {
+    restart();
 }
 
 function expandTemplates(object) {
@@ -138,9 +152,10 @@ function convertColorsToRGBA(object) {
         .forEach(pair => convertColorsToRGBA(pair.value));
 }
 
-function createScene() {
-    const pathToModelFile = `./${getHashComponent(window.location.hash)}`;
-    const model = JSON.parse(JSON.stringify(modules['./models/test2.json']));
+function loadScene(canvas, { scene: scenePath }) {
+    console.group(`Loading scene '${scenePath}'`);
+
+    const model = JSON.parse(JSON.stringify(modules[`./${scenePath}`]));
     const resources = modules;
     const gl = Gfx.getGlContext(canvas);
 
@@ -260,23 +275,26 @@ function createScene() {
     const scene = { nodes };
     console.timeEnd('Scene creation');
 
+    console.groupEnd();
     return scene;
 }
 
-function renderScene(totalTime = 0) {
-    if(Type.isNumber(totalTimeLastFrame)) {
-        // console.time('Scene rendering');
-        const time = {
-            delta: totalTimeLastFrame - totalTime,
-            total: totalTime,
-        };
-        Gfx.renderScene(canvas, scene, time);
-        // console.timeEnd('Scene rendering');
+function startRenderLoop(canvas, scene, { single = false }) {
+    console.assert(Type.isBoolean(single));
+    console.log(`Starting render loop... (single = ${single})`);
+    let totalTimeLastFrame = performance.now();
+    animationFrameId = requestAnimationFrame(loop);
+
+    function loop(totalTime) {
+        const deltaTime = totalTime - totalTimeLastFrame;
+
+        Gfx.renderScene(canvas, scene, { total: totalTime, delta: deltaTime });
+        totalTimeLastFrame = totalTime;
+
+        if(!single) {
+            animationFrameId = requestAnimationFrame(loop);
+        }
     }
-
-    totalTimeLastFrame = totalTime;
-
-    requestAnimationFrame(renderScene);
 }
 
 function randomVec3(engine, min, max) {
@@ -290,8 +308,18 @@ function randomVec3(engine, min, max) {
     );
 }
 
-function getHashComponent(hash) {
-    return decodeURIComponent(hash).replace(/^#/, '');
+function getUrlParameters(location) {
+    console.assert('hash' in location);
+
+    const parameters = decodeURIComponent(location.hash).match(/(?=[^#])[^&\s]+=[^&\s]+/g)
+        .reduce((object, match) => {
+            const [key, value] = match.split('=');
+            object[key] = parseString(value);
+
+            return object;
+        }, {});
+
+    return parameters;
 }
 
 function parseColor(value) {
@@ -300,6 +328,28 @@ function parseColor(value) {
     }
 
     return Vec4.parse(value);
+}
+
+function parseString(string) {
+    console.assert(Type.isString(string));
+
+    if(string === '') {
+        return string;
+    }
+
+    if(string === 'true') {
+        return true;
+    }
+
+    if(string === 'false') {
+        return false;
+    }
+
+    if(!isNaN(string)) {
+        return +string;
+    }
+
+    return string;
 }
 
 function convertNameToColor(colorName) {
