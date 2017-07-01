@@ -28,7 +28,7 @@ function fromMesh(gl, mesh) {
     Object.values(components)
         .forEach(component => {
             component.data = new Float32Array(component.data);
-        })
+        });
 
     const layout = Object.keys(components)
         .map(key => ({ key, value: components[key] }))

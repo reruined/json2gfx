@@ -186,6 +186,7 @@ function uploadUniforms(gl, program, uniforms) {
         });
 }
 
+// eslint-disable-next-line no-unused-vars
 function commitUniform(gl, location, value, key) {
     console.assert(location);
     console.assert(!Type.isUndefined(value));
@@ -339,5 +340,5 @@ function getProjectionMatrix(camera, ar) {
 }
 
 function getAlbedo(object) {
-    return 'albedo' in object? object.albedo : [1, 1, 1, 1]
+    return 'albedo' in object? object.albedo : [1, 1, 1, 1];
 }

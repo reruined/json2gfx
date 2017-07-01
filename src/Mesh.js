@@ -83,7 +83,7 @@ const POSITIONS = {
         -0.5, -0.5, 0.5,
         -0.5, -0.5, -0.5,
     ]),
-}
+};
 
 const NORMALS = {
     triangle: new Float32Array([
@@ -161,7 +161,7 @@ const NORMALS = {
         0, -1, 0,
         0, -1, 0,
     ])
-}
+};
 
 function fromGeometry(geometry) {
     console.assert(Type.isObject(geometry));
