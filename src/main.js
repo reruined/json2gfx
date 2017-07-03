@@ -38,14 +38,14 @@ function restart() {
 }
 
 function initContentHmr() {
-    let context = require.context('../content', true, /\.(json|vert|frag|png|jpg)$/);
+    let context = require.context('../content', true, /\.(js|json|vert|frag|png|jpg)$/);
     context.keys().forEach(key => {
         modules[key] = context(key);
     });
 
     if(module.hot) {
         module.hot.accept(context.id, () => {
-            const newContext = require.context('../content', true, /\.(json|vert|frag|png|jpg)$/);
+            const newContext = require.context('../content', true, /\.(js|json|vert|frag|png|jpg)$/);
             const changedModules = newContext.keys()
                 .map(key => ({ key: key, 'module': newContext(key) }))
                 .filter(pair => modules[pair.key] !== pair.module);
@@ -103,6 +103,38 @@ function expandTemplates(object) {
         .filter(Type.isObject)
         .filter(value => !Type.isArray(value))
         .forEach(expandTemplates);
+}
+
+function evaluateFunctions(object) {
+    console.assert(Type.isObject(object));
+
+    Object.keys(object)
+        .map(key => ({ key: key, value: object[key] }))
+        .filter(pair => isProceduralFunction(pair.value))
+        .forEach(pair => {
+            const func = modules[`./procedural/${pair.value.function}.js`].default;
+            const result = func(pair.value.params);
+
+            console.log(`Procedure '${pair.value.function}' evaluated to '${Type.getName(result)}':`, result);
+            object[pair.key] = result;
+        });
+
+    Object.values(object)
+        .filter(Type.isObject)
+        .filter(value => !Type.isArray(value))
+        .forEach(evaluateFunctions);
+}
+
+function isProceduralFunction(value) {
+    if(!Type.isObject(value)) {
+        return false;
+    }
+
+    if('function' in value === false) {
+        return false;
+    }
+
+    return true;
 }
 
 function isTemplate(value) {
@@ -167,6 +199,9 @@ function loadScene(canvas, { scene: scenePath }) {
     // expand templates
     expandTemplates(model);
 
+    // evaluate functions
+    evaluateFunctions(model);
+
     // convert degrees to radians
     convertDegreesToRadians(model);
 
@@ -209,9 +244,6 @@ function loadScene(canvas, { scene: scenePath }) {
             node.parent = parent;
         });
 
-
-    // remove template nodes from
-
     // calculate globalTransform for all nodes
     nodes.forEach(node => node.globalTransform = Gfx.getGlobalTransform(node));
     console.log('Calculated global transforms');
@@ -223,7 +255,7 @@ function loadScene(canvas, { scene: scenePath }) {
         .map(node => node.geometry)
         .reduce((meshes, geometry) => {
             if(!meshes.get(geometry)) {
-                meshes.set(geometry, GlMesh.fromMesh(gl, Mesh.fromGeometry(geometry)));
+                meshes.set(geometry, Mesh.fromGeometry(geometry));
                 meshCount++;
             }
 
@@ -235,6 +267,23 @@ function loadScene(canvas, { scene: scenePath }) {
     nodes
         .filter(node => 'geometry' in node)
         .forEach(node => node.mesh = meshes.get(node.geometry));
+
+    const glMeshes = nodes
+        .filter(node => 'mesh' in node)
+        .map(node => node.mesh)
+        .reduce((glMeshes, mesh) => {
+            if(!glMeshes.get(mesh)) {
+                glMeshes.set(mesh, GlMesh.fromMesh(gl, mesh));
+            }
+
+            return glMeshes;
+        }, new WeakMap());
+    console.log(`Created ${meshCount} GlMesh`);
+
+    // assign meshes to nodes
+    nodes
+        .filter(node => 'mesh' in node)
+        .forEach(node => node.mesh = glMeshes.get(node.mesh));
 
     // delete geometry from all nodes with a mesh
     nodes
