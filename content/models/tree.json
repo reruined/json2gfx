@@ -56,7 +56,8 @@
             "function": "Triangle",
             "params": {
                 "scale": [2, 2, 1],
-                "origin": [0, -1, 0]
+                "origin": [0, -1, 0],
+                "orientation": [0, 0, 0]
             }
         }
     },
