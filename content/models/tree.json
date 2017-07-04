@@ -2,7 +2,7 @@
     "floorGeometry": {
         "shapes": [{
             "shape": "quad",
-            "scale": [2, 2, 1],
+            "scale": [4, 4, 1],
             "orientation": [-90, 0, 0],
             "position": [0, -0.01, 0]
         }]
@@ -10,7 +10,7 @@
 
     "floor1": {
         "shadow": false,
-        "position": [-5, 0, -10],
+        "position": [-7, 0, -10],
         "geometry": "@floorGeometry"
     },
 
@@ -47,17 +47,21 @@
 
     "floor2": {
         "shadow": false,
+        "albedo": "darkred",
         "geometry": "@floorGeometry"
     },
 
     "proceduralTree": {
-        "shadow": false,
+        "shadow": true,
         "mesh": {
-            "function": "Triangle",
+            "function": "TurningTorso",
             "params": {
-                "scale": [2, 2, 1],
-                "origin": [0, -1, 0],
-                "orientation": [0, 0, 0]
+                "origin": [0, 0, 0],
+                "scale": [0.9, 0.9, 0.9],
+                "segments": 20,
+                "twist": 5,
+                "shrink": 0.04,
+                "height": 5
             }
         }
     },
@@ -75,7 +79,7 @@
         "fov": 70,
         "near": 0.1,
         "far": 100,
-        "position": [0, 5, 5],
-        "lookat": [0, 3, 0]
+        "position": [0.5, 17, 17],
+        "lookat": [0, 8, 0]
     }
 }

@@ -1,10 +1,15 @@
-import MathUtils from './MathUtils.js';
 import Type from './Type.js';
 import Vec3 from './Vec3.js';
 import Mat3 from './Mat3.js';
 
 export default {
-    fromGeometry
+    fromGeometry,
+    getExtents,
+    applyOrigin,
+    applyTranslation,
+    applyRotation,
+    applyScale,
+    merge
 };
 
 const POSITIONS = {
@@ -167,7 +172,7 @@ function fromGeometry(geometry) {
     console.assert(Type.isObject(geometry));
     console.assert(Type.isArray(geometry.shapes));
 
-    const vertices = geometry.shapes.map(shape => {
+    const vertexArrays = geometry.shapes.map(shape => {
         const orientation = 'orientation' in shape ? shape.orientation : Vec3.zero();
         const scale = 'scale' in shape ? shape.scale : [1, 1, 1];
         const position = 'position' in shape ? shape.position: Vec3.zero();
@@ -181,7 +186,13 @@ function fromGeometry(geometry) {
         return vertices;
     });
 
-    return { vertices: Array().concat(...vertices), mode: 'TRIANGLES' };
+    const vertices = Array().concat(...vertexArrays);
+
+    return {
+        positions: vertices.map(v => v.position),
+        normals: vertices.map(v => v.normal),
+        mode: 'TRIANGLES',
+    };
 }
 
 function getVertices(shape) {
@@ -232,4 +243,60 @@ function getPlaneUvs() {
         0, 1,
         0, 0,
     ]);
+}
+
+function applyScale(mesh, scale) {
+    const positions = mesh.positions
+        .map(position => Vec3.multiply(position, scale));
+    mesh.positions = positions;
+}
+
+function applyRotation(mesh, transform) {
+    const positions = mesh.positions
+        .map(position => Vec3.transform(position, transform));
+
+    const normals = mesh.normals
+        .map(normal => Vec3.transform(normal, transform));
+
+    mesh.positions = positions;
+    mesh.normals = normals;
+}
+
+function applyTranslation(mesh, translation) {
+    console.assert(Type.isObject(mesh));
+
+    const positions = mesh.positions
+        .map(position => Vec3.add(position, translation));
+    mesh.positions = positions;
+}
+
+function applyOrigin(mesh, normalizedOrigin) {
+    console.assert(normalizedOrigin.length === 3);
+    console.assert(-1 >= normalizedOrigin[0] <= 1);
+    console.assert(-1 >= normalizedOrigin[1] <= 1);
+    console.assert(-1 >= normalizedOrigin[2] <= 1);
+    console.assert('positions' in mesh);
+
+    const extents = getExtents(mesh);
+    const unnormalizedOrigin = Vec3.multiply(normalizedOrigin, extents);
+    const positions = mesh.positions.map(position => Vec3.scaleAndAdd(position, unnormalizedOrigin, -0.5));
+    mesh.positions = positions;
+}
+
+function getExtents(mesh) {
+    console.assert('positions' in mesh);
+    const min = mesh.positions.reduce((result, pos) => Vec3.min(result, pos), Vec3.largest());
+    const max = mesh.positions.reduce((result, pos) => Vec3.max(result, pos), Vec3.smallest());
+    return Vec3.sub(max, min);
+}
+
+function merge(...meshes) {
+    const positions = Array().concat(...meshes.map(mesh => mesh.positions));
+    const normals = Array().concat(...meshes.map(mesh => mesh.normals));
+
+    return {
+        positions,
+        normals,
+        mode: meshes[0].mode
+    };
 }

@@ -268,17 +268,19 @@ function loadScene(canvas, { scene: scenePath }) {
         .filter(node => 'geometry' in node)
         .forEach(node => node.mesh = meshes.get(node.geometry));
 
+    let glMeshCount = 0;
     const glMeshes = nodes
         .filter(node => 'mesh' in node)
         .map(node => node.mesh)
         .reduce((glMeshes, mesh) => {
             if(!glMeshes.get(mesh)) {
                 glMeshes.set(mesh, GlMesh.fromMesh(gl, mesh));
+                glMeshCount++;
             }
 
             return glMeshes;
         }, new WeakMap());
-    console.log(`Created ${meshCount} GlMesh`);
+    console.log(`Created ${glMeshCount} GlMesh`);
 
     // assign meshes to nodes
     nodes
