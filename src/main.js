@@ -117,10 +117,12 @@ function evaluateFunctions(object) {
         .map(key => ({ key: key, value: object[key] }))
         .filter(pair => isProceduralFunction(pair.value))
         .forEach(pair => {
+            const t0 = performance.now();
             const func = modules[`./procedural/${pair.value.function}.js`].default;
             const result = func(pair.value.params);
+            const t1 = performance.now();
 
-            console.log(`Procedure '${pair.value.function}' evaluated to '${Type.getName(result)}':`, result);
+            console.log(`Procedure '${pair.value.function}' evaluated to '${Type.getName(result)}' (${(t1 - t0).toFixed(1)} ms):`, result);
             object[pair.key] = result;
         });
 
@@ -199,18 +201,27 @@ function loadScene(canvas, { scene: scenePath }) {
     console.time('Scene creation');
 
     // convert albedos to RGBA
+    console.time('Convert colors to RGBA');
     convertColorsToRGBA(model);
+    console.timeEnd('Convert colors to RGBA');
 
     // expand templates
+    console.time('Expand templates');
     expandTemplates(model);
+    console.timeEnd('Expand templates');
 
     // evaluate functions
+    console.time('Evaluate functions');
     evaluateFunctions(model);
+    console.timeEnd('Evaluate functions');
 
     // convert degrees to radians
+    console.time('Convert degrees to radians');
     convertDegreesToRadians(model);
+    console.timeEnd('Convert degrees to radians');
 
     // extract nodes from 'children' arrays
+    console.time('Extract nodes from \'children\' arrays');
     Object.keys(model)
         .map(key => ({ key: key, value: model[key] }))
         .filter(pair => 'children' in pair.value)
@@ -221,15 +232,17 @@ function loadScene(canvas, { scene: scenePath }) {
             });
             delete pair.value.children;
         });
+    console.timeEnd('Extract nodes from \'children\' arrays');
 
     // create an array of nodes, with keys, from the source object
+    const t0 = performance.now();
     const nodes = Object
         .keys(model)
         // create key-value pairs
         .map(key => ({ key: key, value: model[key] }))
         // merge key and value into a new node
         .map(pair => Object.assign({}, pair.value, { key: pair.key }));
-    console.log(`Created ${nodes.length} nodes`);
+    console.log(`Created ${nodes.length} nodes (${(performance.now() - t0).toFixed(1)} ms)`);
 
     // resolve references
     nodes
@@ -250,8 +263,9 @@ function loadScene(canvas, { scene: scenePath }) {
         });
 
     // calculate globalTransform for all nodes
+    console.time('Calculated global transform');
     nodes.forEach(node => node.globalTransform = Gfx.getGlobalTransform(node));
-    console.log('Calculated global transforms');
+    console.timeEnd('Calculated global transform');
 
     // create meshes from geometries
     let meshCount = 0;
