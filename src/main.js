@@ -31,10 +31,15 @@ function init() {
 function restart() {
     console.log('%cRestarting...', 'font-weight:bold');
     const canvas = document.querySelector('canvas');
-    const scene = loadScene(canvas, getUrlParameters(window.location));
+
+    const urlParams = Object.assign({
+        scene: 'models/test2.json',
+        single: false
+    }, getUrlParameters(window.location));
+    const scene = loadScene(canvas, urlParams);
 
     cancelAnimationFrame(animationFrameId);
-    startRenderLoop(canvas, scene, getUrlParameters(window.location));
+    startRenderLoop(canvas, scene, urlParams);
 }
 
 function initContentHmr() {
@@ -362,7 +367,7 @@ function randomVec3(engine, min, max) {
 function getUrlParameters(location) {
     console.assert('hash' in location);
 
-    const parameters = decodeURIComponent(location.hash).match(/(?=[^#])[^&\s]+=[^&\s]+/g)
+    const parameters = (decodeURIComponent(location.hash).match(/(?=[^#])[^&\s]+=[^&\s]+/g) || [])
         .reduce((object, match) => {
             const [key, value] = match.split('=');
             object[key] = parseString(value);
