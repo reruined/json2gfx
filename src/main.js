@@ -91,15 +91,31 @@ function expandTemplates(object) {
         .forEach(pair => {
             console.assert(isTemplate(pair.value));
 
-            const engine = Random.engines.mt19937().seed(pair.value.seed);
-            object[pair.key] = Array(pair.value.count).fill(null)
+            const {
+                position: {
+                    min: positionMin = Vec3.zero(),
+                    max: positionMax = Vec3.zero(),
+                } = {},
+                orientation: {
+                    min: orientationMin = Vec3.zero(),
+                    max: orientationMax = Vec3.zero(),
+                } = {},
+                scale: {
+                    min: scaleMin = Vec3.one(),
+                    max: scaleMax = Vec3.one(),
+                } = {},
+                seed = 0,
+                count = 1,
+                template
+            } = pair.value;
+
+            const engine = Random.engines.mt19937().seed(seed);
+            object[pair.key] = Array(count).fill(null)
                 .map(() => {
-                    const minOrientation = pair.value.orientation.min;
-                    const maxOrientation = pair.value.orientation.max;
-                    return Object.assign({}, pair.value.template, {
-                        position: randomVec3(engine, pair.value.position.min, pair.value.position.max),
-                        orientation: randomVec3(engine, minOrientation, maxOrientation),
-                        scale: randomVec3(engine, pair.value.scale.min, pair.value.scale.max),
+                    return Object.assign({}, template, {
+                        position: randomVec3(engine, positionMin, positionMax),
+                        orientation: randomVec3(engine, orientationMin, orientationMax),
+                        scale: randomVec3(engine, scaleMin, scaleMax),
                     });
                 });
         });
@@ -156,9 +172,6 @@ function isTemplate(value) {
     if('template' in value === false) {
         return false;
     }
-
-    console.assert(Type.isNumber(value.count));
-    console.assert(Type.isNumber(value.seed));
 
     return true;
 }
