@@ -144,7 +144,6 @@ function evaluateFunctions(object) {
 
     Object.values(object)
         .filter(Type.isObject)
-        .filter(value => !Type.isArray(value))
         .forEach(evaluateFunctions);
 }
 
