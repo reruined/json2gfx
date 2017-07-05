@@ -1,30 +1,115 @@
 {
-    "floor": {
-        "geometry": {
+    "floorGeometry": {
+        "shapes": [{
             "shape": "quad",
             "orientation": [-90, 0, 0],
-            "scale": [10, 1, 10]
-        },
-        "albedo": [1, 1, 1, 1],
-        "position": [0, 0, 0]
+            "scale": [62, 62, 1]
+        }]
     },
 
-    "grassCluster": {
+    "grassClusterGeometry": {
+        "shapes": {
+            "template": {
+                "shape": "cube"
+            },
+            "position": {
+                "min": [-1, 0.5, -1],
+                "max": [1, 0.5, 1]
+            },
+            "orientation": {
+                "min": [0, -25, 0],
+                "max": [0, 25, 0]
+            },
+            "scale": {
+                "min": [1, 1, 0],
+                "max": [1, 1, 0]
+            },
+            "count": 15,
+            "seed": 0
+        }
+    },
+
+    "boxGeometry": {
+        "shapes": [{
+            "shape": "cube"
+        }]
+    },
+
+    "floor": {
+        "shadow": false,
+        "geometry": "@floorGeometry",
+        "albedo": "#B86A22",
+        "position": [0, -0.01, 0]
+    },
+
+    "brownGrass": {
         "parent": "@floor",
-        "albedo": [0, 1, 0, 1],
         "position": [0, 0, 0],
         "orientation": [0, 0, 0],
-        "geometry": {
-            "shape": "cube",
-            "position": [0, 0.5, 0],
-            "scale": [1, 1, 0]
 
+        "children": {
+            "template": {
+                "albedo": "#E9842C",
+                "geometry": "@grassClusterGeometry"
+            },
+            "position": {
+                "min": [-30, 0, -30],
+                "max": [30, 0, 30]
+            },
+            "orientation": {
+                "min": [0, -90, 0],
+                "max": [0, 90, 0]
+            },
+            "scale": {
+                "min": [1, 1, 1],
+                "max": [1, 1, 1]
+            },
+            "count": 160,
+            "seed": 502
+        }
+    },
+
+    "purpleGrass": {
+        "parent": "@floor",
+        "position": [0, 0, 0],
+        "orientation": [0, 90, 0],
+
+        "children": {
+            "template": {
+                "albedo": "#775BD4",
+                "geometry": "@grassClusterGeometry"
+            },
+            "position": {
+                "min": [-30, 0, -30],
+                "max": [30, 0, 30]
+            },
+            "orientation": {
+                "min": [0, -90, 0],
+                "max": [0, 90, 0]
+            },
+            "scale": {
+                "min": [1, 1, 1],
+                "max": [1, 1, 1]
+            },
+            "count": 80,
+            "seed": 502
+        }
+    },
+
+    "sun": {
+        "light": {
+            "type": "directional",
+            "color": "white",
+            "intensity": 0.5,
+            "direction": [1, -1, -0.8]
         }
     },
 
     "camera": {
         "fov": 90,
-        "position": [0, 2, 2],
-        "near": 0.1
+        "near": 0.1,
+        "far": 100,
+        "position": [0, 20, 40],
+        "lookat": [0, 0, 0]
     }
 }

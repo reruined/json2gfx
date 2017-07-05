@@ -1,3 +1,6 @@
+'use strict';
+
+import Log from './Log.js';
 import Type from './Type.js';
 import MathUtils from './MathUtils.js';
 import Mat3 from './Mat3.js';
@@ -11,11 +14,14 @@ export default {
     getGlobalTransform
 };
 
-function renderScene(canvas, scene) {
-    console.group('Gfx');
+function renderScene(canvas, scene, time) {
+    console.assert(Type.isObject(time));
+    console.assert(Type.isNumber(time.total));
+    console.assert(Type.isNumber(time.delta));
+    // console.group('Gfx');
 
     updateCanvasSize(canvas);
-    console.log(`resized canvas to [${canvas.width.toFixed(0)}, ${canvas.height.toFixed(0)}]`);
+    Log.verbose(`resized canvas to [${canvas.width.toFixed(0)}, ${canvas.height.toFixed(0)}]`);
 
     const gl = getGlContext(canvas);
     gl.enable(gl.DEPTH_TEST);
@@ -25,21 +31,28 @@ function renderScene(canvas, scene) {
 
     const clearColor = getClearColor(scene);
     clear(gl, clearColor);
-    console.log(`cleared canvas with color: [${clearColor.map(num => num.toFixed(0)).join(', ')}]`);
+    Log.verbose(`cleared canvas with color: [${clearColor.map(num => num.toFixed(0)).join(', ')}]`);
 
     const camera = getActiveCamera(scene);
     camera.projection = getProjectionMatrix(camera, gl.canvas.width / gl.canvas.height);
 
-    console.log('context:', gl);
-    console.log('camera:', camera);
-    console.log('scene:', scene);
+    Log.verbose('context:', gl);
+    Log.verbose('camera:', camera);
+    Log.verbose('scene:', scene);
 
-    scene.nodes
-        .filter(isRenderable)
-        .forEach(node => {
-            console.log(`rendering node: ${node.key}`);
-            renderNode(gl, node, camera);
-        });
+    const visibleNodes = scene.nodes.filter(isVisible);
+    const meshNodes = visibleNodes.filter(hasMesh);
+    const lightNodes = visibleNodes.filter(hasLight);
+
+    meshNodes.forEach(meshNode => {
+        Log.verbose(`rendering mesh node: ${meshNode.key}`);
+        renderNode(gl, meshNode, camera, time);
+    });
+
+    lightNodes.forEach(lightNode => {
+        Log.verbose(`rendering light node: ${lightNode.key}`);
+        renderLight(gl, lightNode, meshNodes, camera, time);
+    });
 
     console.groupEnd();
 }
@@ -49,8 +62,8 @@ function clear(gl, color) {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 }
 
-function renderNode(gl, node, camera) {
-    console.assert(isRenderable(node));
+function renderNode(gl, node, camera, time) {
+    console.assert(hasMesh(node));
 
     if(hasMesh(node)) {
         drawMesh(gl, node.mesh, {
@@ -59,32 +72,107 @@ function renderNode(gl, node, camera) {
                 projection: camera.projection,
                 view: Mat4.inverse(camera.globalTransform),
                 world: node.globalTransform,
-                albedo: node.albedo
+                albedo: getAlbedo(node),
+                totalTime: time.total
             }
         });
     }
 }
 
+function renderProjectedShadow(gl, light, props = {}) {
+    let lightPos = Vec3.parse(light.direction);
+    lightPos = Vec3.normalize(lightPos);
+    lightPos = Vec3.scale(lightPos, -1);
+    lightPos = Vec3.scale(lightPos, Number.MAX_SAFE_INTEGER);
+    let lightMatrix = new Float32Array([
+        lightPos[1],  0,            0,           0,
+        -lightPos[0], 0, -lightPos[2],          -1,
+        0,            0,  lightPos[1],           0,
+        0,            0,            0, lightPos[1],
+    ]);
+
+    let t = Mat4.identity();
+    t = Mat4.multiply(lightMatrix, t);
+    t = Mat4.multiply(props.shadowCaster.globalTransform, t);
+
+    drawMesh(gl, props.shadowCaster.mesh, {
+        shaderProgram: props.shadowCaster.shaderProgram,
+        uniforms: {
+            world: t,
+            view: props.uniforms.view,
+            projection: props.uniforms.projection,
+            albedo: new Float32Array(Vec4.zero()),
+            totalTime: props.uniforms.totalTime
+        }
+    });
+}
+
+function renderLight(gl, lightNode, meshNodes, camera, time) {
+    console.assert(gl);
+    console.assert(hasLight(lightNode));
+    console.assert(Type.isArray(meshNodes));
+    console.assert(Type.isObject(camera));
+
+    gl.colorMask(false, false, false, false);
+    meshNodes
+        .filter(isShadowCaster)
+        .forEach(shadowCaster => {
+            renderProjectedShadow(gl, lightNode.light, {
+                shadowCaster: shadowCaster,
+                uniforms: {
+                    view: Mat4.inverse(camera.globalTransform),
+                    projection: camera.projection,
+                    totalTime: time.total
+                }
+            });
+        });
+    gl.colorMask(true, true, true, true);
+
+    gl.blendFunc(gl.ONE, gl.ONE);
+    gl.enable(gl.BLEND);
+    meshNodes.forEach(meshNode => {
+        drawMesh(gl, meshNode.mesh, {
+            shaderProgram: lightNode.shaderProgram,
+            uniforms: {
+                projection: camera.projection,
+                view: Mat4.inverse(camera.globalTransform),
+                world: meshNode.globalTransform,
+                albedo: getAlbedo(meshNode),
+                lightColor: new Float32Array([1, 1, 1, 1]),
+                lightDirection: new Float32Array(lightNode.light.direction),
+                lightIntensity: lightNode.light.intensity,
+                totalTime: time.total
+            }
+        });
+    });
+    gl.disable(gl.BLEND);
+}
+
 function drawMesh(gl, mesh, {shaderProgram, uniforms}) {
     console.assert(gl);
-    console.assert(Type.isObject(mesh));
     console.assert(shaderProgram);
+    console.assert(Type.isObject(mesh));
+    console.assert('layout' in mesh);
+    console.assert('vertexCount' in mesh);
+    console.assert('mode' in mesh);
 
     gl.useProgram(shaderProgram);
     bindLayout(gl, shaderProgram, mesh.layout);
 
     uploadUniforms(gl, shaderProgram, uniforms);
-    gl.drawArrays(gl.TRIANGLES, 0, mesh.vertexCount);
+    gl.drawArrays(mesh.mode, 0, mesh.vertexCount);
 
     unbindLayout(mesh.layout);
     gl.useProgram(null);
 }
 
 function uploadUniforms(gl, program, uniforms) {
+    console.assert('uniformLocations' in program);
+
     Object
         .keys(uniforms)
         .map(key => ({
-            location: gl.getUniformLocation(program, key),
+            location: program.uniformLocations[key],
             key: key,
             value: uniforms[key]
         }))
@@ -98,18 +186,19 @@ function uploadUniforms(gl, program, uniforms) {
         });
 }
 
+// eslint-disable-next-line no-unused-vars
 function commitUniform(gl, location, value, key) {
     console.assert(location);
     console.assert(!Type.isUndefined(value));
     console.assert(!Type.isNull(value));
 
     if(Type.isNumber(value)) {
-        if(Number.isInteger(value) && key != 'uvScale') {
-            gl.uniform1i(location, value);
-        }
-        else {
-            gl.uniform1f(location, value);
-        }
+        // if(Number.isInteger(value) && key != 'uvScale') {
+        //gl.uniform1i(location, value);
+        // }
+        // else {
+        gl.uniform1f(location, value);
+        // }
     }
     if(value.length === 16) {
         gl.uniformMatrix4fv(location, false, value);
@@ -123,6 +212,10 @@ function commitUniform(gl, location, value, key) {
 }
 
 function bindLayout(gl, program, layout) {
+    console.assert(gl);
+    console.assert(program);
+    console.assert(Type.isArray(layout));
+
     layout.forEach(item => {
         const location = gl.getAttribLocation(program, item.key);
         if(location !== -1) {
@@ -155,12 +248,23 @@ function updateCanvasSize(canvas) {
     }
 }
 
+function isVisible(object) {
+    const parentVisible = 'parent' in object ? isVisible(object.parent) : true;
+    const visible = 'visible' in object ? object.visible : true;
+
+    return parentVisible && visible;
+}
+
+function isShadowCaster(object) {
+    return 'shadow' in object ? object.shadow : true;
+}
+
 function hasMesh(object) {
     return 'mesh' in object;
 }
 
-function isRenderable(object) {
-    return 'mesh' in object;
+function hasLight(object) {
+    return 'light' in object;
 }
 
 function getActiveCamera(scene) {
@@ -179,7 +283,7 @@ function getGlContext(canvas) {
 function getLocalRotationMatrix(object) {
     console.assert(Type.isObject(object));
 
-    const angles = Vec3.parse(object.orientation).map(MathUtils.degToRad);
+    const angles = Vec3.parse(object.orientation);
     return Mat3.fromEulerAngles(angles);
 }
 
@@ -191,6 +295,10 @@ function getLocalPosition(object) {
 function getGlobalRotationMatrix(object) {
     if(!object) {
         return Mat3.identity();
+    }
+
+    if('lookat' in object) {
+        return Mat3.lookAt(getGlobalPosition(object), object.lookat, [0, 1, 0]);
     }
 
     const globalParentRotation = getGlobalRotationMatrix(object.parent);
@@ -229,4 +337,8 @@ function getProjectionMatrix(camera, ar) {
     const hFov = 2 * Math.atan(Math.tan(fov / 2) / ar);
 
     return Mat4.perspective(ar, hFov, near, far);
+}
+
+function getAlbedo(object) {
+    return 'albedo' in object? object.albedo : [1, 1, 1, 1];
 }

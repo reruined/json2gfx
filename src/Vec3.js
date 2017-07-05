@@ -1,11 +1,15 @@
 import Type from './Type.js';
 import Mat3 from './Mat3.js';
+import ArrayUtils from './ArrayUtils.js';
+
+const VECTOR_LENGTH = 3;
 
 export default {
     parse,
     fromValues,
     add,
     sub,
+    multiply,
     normalize,
     dot,
     cross,
@@ -13,7 +17,52 @@ export default {
     one,
     transform,
     scale,
+    clone,
+    largest,
+    smallest,
+    min,
+    max,
+    scaleAndAdd
 };
+
+function scaleAndAdd(v1, v2, scalar) {
+    return add(v1, scale(v2, scalar));
+}
+
+function min(v1, v2) {
+    return ArrayUtils.range(VECTOR_LENGTH)
+        .map(i => Math.min(v1[i], v2[i]));
+}
+
+function max(v1, v2) {
+    return ArrayUtils.range(VECTOR_LENGTH)
+        .map(i => Math.max(v1[i], v2[i]));
+}
+
+function largest() {
+    return fromValues(
+        Number.POSITIVE_INFINITY,
+        Number.POSITIVE_INFINITY,
+        Number.POSITIVE_INFINITY,
+    );
+}
+
+function smallest() {
+    return fromValues(
+        Number.NEGATIVE_INFINITY,
+        Number.NEGATIVE_INFINITY,
+        Number.NEGATIVE_INFINITY,
+    );
+}
+
+function multiply(v1, v2) {
+    return ArrayUtils.range(3)
+        .map(i => v1[i] * v2[i]);
+}
+
+function clone(v) {
+    return fromValues(...v);
+}
 
 function parse(value) {
     if(value instanceof Float32Array) {

@@ -1,3 +1,5 @@
+import ArrayUtils from './ArrayUtils.js';
+
 export default {
     compile
 };
@@ -20,13 +22,14 @@ function compile(gl, ...shaders) {
     program.attributes = {};
     program.attributes.vertexPosition = gl.getAttribLocation(program, 'aVertexPosition');
 
-    program.uniforms = {};
-    program.uniforms.world = gl.getUniformLocation(program, 'uWorld');
-    program.uniforms.view = gl.getUniformLocation(program, 'uView');
-    program.uniforms.projection = gl.getUniformLocation(program, 'uProjection');
-    program.uniforms.color = gl.getUniformLocation(program, 'uColor');
-
-    // console.log('ShaderProgram.compile() succeeded');
+    const activeUniformCount = gl.getProgramParameter(program, gl.ACTIVE_UNIFORMS);
+    program.uniformLocations = ArrayUtils.range(activeUniformCount)
+        .map(index => gl.getActiveUniform(program, index))
+        .map(info => ({ key: info.name, location: gl.getUniformLocation(program, info.name) }))
+        .reduce((object, pair) => {
+            object[pair.key] = pair.location;
+            return object;
+        }, {});
 
     return program;
 }

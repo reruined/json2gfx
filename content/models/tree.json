@@ -1,0 +1,85 @@
+{
+    "floorGeometry": {
+        "shapes": [{
+            "shape": "quad",
+            "scale": [4, 4, 1],
+            "orientation": [-90, 0, 0],
+            "position": [0, -0.01, 0]
+        }]
+    },
+
+    "floor1": {
+        "shadow": false,
+        "position": [-7, 0, -10],
+        "geometry": "@floorGeometry"
+    },
+
+    "tree1": {
+        "parent": "@floor1",
+        "geometry": {
+            "shapes": [
+                {
+                    "shape": "cube",
+                    "position": [0, 0.5, 0]
+                },
+                {
+                    "shape": "cube",
+                    "position": [0, 1.5, 0],
+                    "orientation": [0, 15, 0],
+                    "scale": [0.8, 0.8, 0.8]
+                },
+                {
+                    "shape": "cube",
+                    "position": [0, 2.5, 0],
+                    "orientation": [0, 30, 0],
+                    "scale": [0.6, 0.6, 0.6]
+                },
+                {
+                    "shape": "cube",
+                    "position": [0, 3.5, 0],
+                    "orientation": [0, 45, 0],
+                    "scale": [0.4, 0.4, 0.4]
+                }
+            ]
+        }
+
+    },
+
+    "floor2": {
+        "shadow": false,
+        "albedo": "darkred",
+        "geometry": "@floorGeometry"
+    },
+
+    "proceduralTree": {
+        "shadow": true,
+        "mesh": {
+            "function": "TurningTorso",
+            "params": {
+                "origin": [0, 0, 0],
+                "scale": [0.9, 0.9, 0.9],
+                "segments": 20,
+                "twist": 5,
+                "shrink": 0.04,
+                "height": 5
+            }
+        }
+    },
+
+    "sun": {
+        "light": {
+            "type": "directional",
+            "color": "white",
+            "intensity": 0.5,
+            "direction": [1, -1, -0.8]
+        }
+    },
+
+    "camera": {
+        "fov": 70,
+        "near": 0.1,
+        "far": 100,
+        "position": [0.5, 17, 17],
+        "lookat": [0, 8, 0]
+    }
+}
