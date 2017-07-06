@@ -135,8 +135,12 @@ function evaluateFunctions(object) {
         .map(key => ({ key: key, value: object[key] }))
         .filter(pair => isProceduralFunction(pair.value))
         .forEach(pair => {
+            const moduleName = `./procedural/${pair.value.function}.js`;
+            if(moduleName in modules === false) {
+                throw new Error(`Cannot evaluate function '${moduleName}'`);
+            }
             const t0 = performance.now();
-            const func = modules[`./procedural/${pair.value.function}.js`].default;
+            const func = modules[moduleName].default;
             const result = func(pair.value.params);
             const t1 = performance.now();
 
