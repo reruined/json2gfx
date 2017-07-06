@@ -194,7 +194,7 @@ function convertDegreesToRadians(object) {
 function convertColorsToRGBA(object) {
     Object.keys(object)
         .map(key => ({ key: key, value: object[key] }))
-        .filter(pair => pair.key === 'albedo')
+        .filter(pair => pair.key.match(/albedo|clearColor/))
         .forEach(pair => object[pair.key] = parseColor(pair.value));
 
     Object.keys(object)

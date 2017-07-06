@@ -150,6 +150,8 @@ function multiply(m1, m2, ...matrices) {
     if(!m2) {
         return m1;
     }
+    console.assert(m1.length === 16);
+    console.assert(m2.length === 16);
 
     let result = new Float32Array(ELEMENTS);
     for(let row = 0; row < ROWS; row++) {

@@ -29,12 +29,12 @@ function renderScene(canvas, scene, time) {
     gl.enable(gl.CULL_FACE);
     gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
-    const clearColor = getClearColor(scene);
-    clear(gl, clearColor);
-    Log.verbose(`cleared canvas with color: [${clearColor.map(num => num.toFixed(0)).join(', ')}]`);
-
     const camera = getActiveCamera(scene);
     camera.projection = getProjectionMatrix(camera, gl.canvas.width / gl.canvas.height);
+
+    const clearColor = getClearColor(camera);
+    clear(gl, clearColor);
+    Log.verbose(`cleared canvas with color: [${clearColor.map(num => num.toFixed(0)).join(', ')}]`);
 
     Log.verbose('context:', gl);
     Log.verbose('camera:', camera);
@@ -271,8 +271,8 @@ function getActiveCamera(scene) {
     return scene.nodes.find(node => node.key === 'camera');
 }
 
-function getClearColor(scene) {
-    return Vec4.fromValues(0.2, 0.2, 0.2, 1);
+function getClearColor(object) {
+    return 'clearColor' in object ? object.clearColor : [0.2, 0.2, 0.2, 1];
 }
 
 function getGlContext(canvas) {
@@ -292,6 +292,18 @@ function getLocalPosition(object) {
     return Vec3.parse(object.position);
 }
 
+function getGlobalScaleMatrix(object) {
+    if(!object) {
+        return Mat3.identity();
+    }
+
+    if('scale' in object) {
+        return Mat3.scale(Vec3.parse(object.scale));
+    }
+
+    return Mat3.identity();
+}
+
 function getGlobalRotationMatrix(object) {
     if(!object) {
         return Mat3.identity();
@@ -309,9 +321,13 @@ function getGlobalRotationMatrix(object) {
 function getGlobalTransform(object) {
     console.assert(Type.isObject(object));
 
+    const scale = getGlobalScaleMatrix(object);
     const rotation = getGlobalRotationMatrix(object);
     const position = getGlobalPosition(object);
-    return Mat4.fromRotationTranslation(rotation, position);
+    return Mat4.multiply(
+        Mat4.fromMat3(scale),
+        Mat4.fromRotationTranslation(rotation, position)
+    );
 }
 
 function getGlobalPosition(object) {

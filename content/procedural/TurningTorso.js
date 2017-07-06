@@ -42,11 +42,13 @@ export default function (params) {
         return Vec3.transform(normal, Mat3.fromEulerAngles([0, MathUtils.degToRad(twist * mesh.positions[i][1]), 0]));
     });
 
+    /*
     mesh = Mesh.merge(mesh, Cube({
         origin: [0, -1, 0],
         position: [0, Mesh.getExtents(Mesh.merge(...meshes))[1], 0],
         scale: [2.5, 2.5, 2.5]
     }));
+    */
 
     Mesh.applyScale(mesh, scale);
     Mesh.applyRotation(mesh, Mat3.fromEulerAngles(orientation.map(MathUtils.degToRad)));
