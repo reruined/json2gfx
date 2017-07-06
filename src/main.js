@@ -378,9 +378,11 @@ function startRenderLoop(canvas, scene, { single = false }) {
 
         Gfx.renderScene(canvas, scene, { total: totalTime, delta: deltaTime });
         totalTimeLastFrame = totalTime;
+        animationFrameId = requestAnimationFrame(loop);
 
-        if(!single) {
-            animationFrameId = requestAnimationFrame(loop);
+        if(single) {
+            cancelAnimationFrame(animationFrameId);
+            console.log(`Rendering took ${(performance.now() - totalTime).toFixed(1)} ms`);
         }
     }
 }
