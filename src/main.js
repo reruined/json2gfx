@@ -109,13 +109,15 @@ function expandTemplates(object) {
                 template
             } = pair.value;
 
-            const engine = Random.engines.mt19937().seed(seed);
+            const positionRandomEngine = Random.engines.mt19937().seed(seed);
+            const orientationRandomEngine = Random.engines.mt19937().seed(seed);
+            const scaleRandomEngine = Random.engines.mt19937().seed(seed);
             object[pair.key] = Array(count).fill(null)
                 .map(() => {
                     return Object.assign({}, template, {
-                        position: randomVec3(engine, positionMin, positionMax),
-                        orientation: randomVec3(engine, orientationMin, orientationMax),
-                        scale: randomVec3(engine, scaleMin, scaleMax),
+                        position: randomVec3(positionRandomEngine, positionMin, positionMax),
+                        orientation: randomVec3(orientationRandomEngine, orientationMin, orientationMax),
+                        scale: randomVec3(scaleRandomEngine, scaleMin, scaleMax),
                     });
                 });
         });
