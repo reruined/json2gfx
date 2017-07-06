@@ -1,9 +1,8 @@
 {
     "tinyGrassMesh": {
-        "function": "Cube",
+        "function": "Grass",
         "params": {
-            "origin": [0, -1, 0],
-            "scale": [0.2, 0.3, 0]
+            "origin": [0, -1, 0]
         }
     },
 
@@ -71,8 +70,8 @@
                 "max": [0, 180, 0]
             },
             "scale": {
-                "min": [1, 0.1, 1],
-                "max": [1, 1, 1]
+                "min": [0.2, 0.1, 0.2],
+                "max": [1, 0.3, 1]
             },
             "count": 4000
         }
