@@ -1,7 +1,7 @@
-import ArrayUtils from '../../src/ArrayUtils.js';
 import MathUtils from '../../src/MathUtils.js';
 import Vec3 from '../../src/Vec3.js';
 import Mat3 from '../../src/Mat3.js';
+import Mesh from '../../src/Mesh.js';
 
 const POSITIONS = Object.freeze([
     [-1, -1, 0],
@@ -31,28 +31,16 @@ export default function (params) {
         position = Vec3.zero(),
     } = params || {};
 
-    const orientationInRadians = orientation.map(MathUtils.degToRad);
-
-    const rotationMatrix = Mat3.fromEulerAngles(orientationInRadians);
-    const originLocalPositions = POSITIONS
-        .map(v => Vec3.multiply(v, scale))
-        .map(v => Vec3.transform(v, rotationMatrix))
-        .map(v => Vec3.add(v, position));
-
-    const extents = calculateExtents(originLocalPositions);
-    const unnormalizedOrigin = Vec3.multiply(origin, extents);
-    const positions = originLocalPositions.map(v => Vec3.scaleAndAdd(v, unnormalizedOrigin, -0.5));
-    const normals = NORMALS.map(v => Vec3.transform(v, rotationMatrix));
-
-    return {
-        positions,
-        normals,
+    const mesh = {
+        positions: POSITIONS,
+        normals: NORMALS,
         mode: 'TRIANGLES'
     };
-}
 
-function calculateExtents(points) {
-    const min = points.reduce((result, point) => Vec3.min(result, point), Vec3.largest());
-    const max = points.reduce((result, point) => Vec3.max(result, point), Vec3.smallest());
-    return Vec3.sub(max, min);
+    Mesh.applyScale(mesh, scale);
+    Mesh.applyRotation(mesh, Mat3.fromEulerAngles(orientation.map(MathUtils.degToRad)));
+    Mesh.applyTranslation(mesh, position);
+    Mesh.applyOrigin(mesh, origin);
+
+    return mesh;
 }
