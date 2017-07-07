@@ -43,6 +43,7 @@ export default function (params) {
     Mesh.applyRotation(mesh, Mat3.fromEulerAngles(orientation.map(MathUtils.degToRad)));
     Mesh.applyTranslation(mesh, position);
     Mesh.applyOrigin(mesh, origin);
+    Mesh.calculateNormals(mesh);
 
     return mesh;
 }

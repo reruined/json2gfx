@@ -9,6 +9,7 @@ export default {
     applyTranslation,
     applyRotation,
     applyScale,
+    calculateNormals,
     merge
 };
 
@@ -288,6 +289,33 @@ function getExtents(mesh) {
     const min = mesh.positions.reduce((result, pos) => Vec3.min(result, pos), Vec3.largest());
     const max = mesh.positions.reduce((result, pos) => Vec3.max(result, pos), Vec3.smallest());
     return Vec3.sub(max, min);
+}
+
+function calculateNormals(mesh) {
+    console.assert('positions' in mesh);
+
+    const normals = mesh.positions
+        // split vertices into triangles
+        .reduce((triangles, vertex, index) => {
+            if(index % 3 === 0) {
+                triangles.push([]);
+            }
+
+            triangles[triangles.length - 1].push(vertex);
+            return triangles;
+        }, [])
+        // calculate normals per triangle
+        .map(triangle => {
+            const edge3 = Vec3.sub(triangle[1], triangle[0]);
+            const edge1 = Vec3.sub(triangle[2], triangle[1]);
+            return Vec3.normalize(Vec3.cross(edge3, edge1));
+        })
+        // triplicate normals
+        .reduce((vertexNormals, triangleNormal) => {
+            vertexNormals.push(triangleNormal, triangleNormal, triangleNormal);
+            return vertexNormals;
+        }, []);
+    mesh.normals = normals;
 }
 
 function merge(...meshes) {
