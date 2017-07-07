@@ -39,5 +39,16 @@ export default function (params) {
     Mesh.applyTranslation(mesh, position);
     Mesh.applyOrigin(mesh, origin);
 
+    mesh.positions = mesh.positions.map(position => {
+        position = Vec3.clone(position);
+        position[1] *= Math.sin(((MathUtils.clamp(position[0], -1.0, 1.0) + 1.0) / 2.0) * Math.PI);
+        position[1] *= Math.sin(((MathUtils.clamp(position[2], -1.0, 1.0) + 1.0) / 2.0) * Math.PI);
+        position[1] = 1.0 - position[1] * 1.9;
+
+        return position;
+    });
+
+    Mesh.calculateNormals(mesh);
+
     return mesh;
 }
