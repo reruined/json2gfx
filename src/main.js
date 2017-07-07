@@ -367,7 +367,7 @@ function loadScene(canvas, { scene: scenePath }) {
     return scene;
 }
 
-function startRenderLoop(canvas, scene, { single = false }) {
+function startRenderLoop(canvas, scene, { single = false, useHack = false }) {
     console.assert(Type.isBoolean(single));
     console.log(`Starting render loop... (single = ${single})`);
     let totalTimeLastFrame = performance.now();
@@ -376,7 +376,7 @@ function startRenderLoop(canvas, scene, { single = false }) {
     function loop(totalTime) {
         const deltaTime = totalTime - totalTimeLastFrame;
 
-        Gfx.renderScene(canvas, scene, { total: totalTime, delta: deltaTime });
+        Gfx.renderScene(canvas, scene, { total: totalTime, delta: deltaTime }, useHack);
         totalTimeLastFrame = totalTime;
         animationFrameId = requestAnimationFrame(loop);
 

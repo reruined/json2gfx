@@ -14,7 +14,7 @@ export default {
     getGlobalTransform
 };
 
-function renderScene(canvas, scene, time) {
+function renderScene(canvas, scene, time, enableHack) {
     console.assert(Type.isObject(time));
     console.assert(Type.isNumber(time.total));
     console.assert(Type.isNumber(time.delta));
@@ -44,6 +44,10 @@ function renderScene(canvas, scene, time) {
     const meshNodes = visibleNodes.filter(hasMesh);
     const lightNodes = visibleNodes.filter(hasLight);
 
+    if(enableHack) {
+        HACK_loadTexture(gl);
+    }
+
     meshNodes.forEach(meshNode => {
         Log.verbose(`rendering mesh node: ${meshNode.key}`);
         renderNode(gl, meshNode, camera, time);
@@ -55,6 +59,35 @@ function renderScene(canvas, scene, time) {
     });
 
     console.groupEnd();
+}
+
+function HACK_loadTexture(gl) {
+    const texels = new Uint8Array([
+        85, 92, 102,
+        234, 208, 168,
+        132, 40, 35,
+        132, 40, 35,
+        132, 40, 35,
+        132, 40, 35,
+        132, 40, 35,
+        132, 40, 35,
+        132, 40, 35,
+        132, 40, 35,
+        255, 0, 0,
+        255, 0, 0,
+        255, 0, 0,
+    ]);
+    const width = texels.length / 3;
+    const height = 1;
+
+    const layerTexture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, layerTexture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, width, height, 0, gl.RGB, gl.UNSIGNED_BYTE, texels);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.activeTexture(gl.TEXTURE0);
 }
 
 function clear(gl, color) {
