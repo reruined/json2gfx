@@ -63,6 +63,15 @@ function renderScene(canvas, scene, time, enableHack) {
 
 function HACK_loadTexture(gl) {
     const texels = new Uint8Array([
+        199, 187, 209,
+        215, 157, 155,
+        224, 141, 111,
+        224, 141, 111,
+        132, 40, 35,
+        132, 40, 35,
+    ]);
+    /*
+    const texels = new Uint8Array([
         85, 92, 102,
         234, 208, 168,
         132, 40, 35,
@@ -77,6 +86,7 @@ function HACK_loadTexture(gl) {
         255, 0, 0,
         255, 0, 0,
     ]);
+    */
     const width = texels.length / 3;
     const height = 1;
 
