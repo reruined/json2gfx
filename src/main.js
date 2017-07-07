@@ -332,10 +332,10 @@ function loadScene(canvas, { scene: scenePath }) {
     // assign default program names to all nodes
     nodes
         .filter(node => 'mesh' in node)
-        .forEach(node => node.shaderProgram = 'ambient');
+        .forEach(node => node.shaderProgram = node.shaderProgram || 'ambient');
     nodes
         .filter(node => 'light' in node)
-        .forEach(node => node.shaderProgram = 'sunlight');
+        .forEach(node => node.shaderProgram = node.shaderProgram || 'sunlight');
 
     // compile unique programs
     const programs = nodes
