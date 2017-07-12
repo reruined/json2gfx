@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "webpack-dev-server -d --colors --inline --hot",
-    "build": "rm -rf ./dist && webpack",
+    "build": "rm -rf ./dist; webpack",
     "test": "karma start"
   },
   "keywords": [],
