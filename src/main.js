@@ -44,9 +44,9 @@ function restart() {
 
 function initContentHmr() {
     let context = require.context('../content', true, /\.(js|json|vert|frag|png|jpg)$/);
-    context.keys().forEach(key => {
+    for(const key of context.keys()) {
         modules[key] = context(key);
-    });
+    }
 
     if(module.hot) {
         module.hot.accept(context.id, () => {
