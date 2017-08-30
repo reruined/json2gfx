@@ -33,7 +33,7 @@ function restart() {
     const canvas = document.querySelector('canvas');
 
     const urlParams = Object.assign({
-        scene: 'models/test2.json',
+        scene: 'models/grassWall.json',
         single: false
     }, getUrlParameters(window.location));
     const scene = loadScene(canvas, urlParams);
