@@ -376,7 +376,7 @@ function startRenderLoop(canvas, scene, { single = false, useHack = false }) {
     function loop(totalTime) {
         const deltaTime = totalTime - totalTimeLastFrame;
 
-        Gfx.renderScene(canvas, scene, { total: totalTime, delta: deltaTime }, useHack);
+        Gfx.renderScene(canvas, scene, { total: (single ? 0 : totalTime), delta: deltaTime }, useHack);
         totalTimeLastFrame = totalTime;
         animationFrameId = requestAnimationFrame(loop);
 
