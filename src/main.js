@@ -13,19 +13,36 @@ import Vec3 from './Vec3.js';
 import Vec4 from './Vec4.js';
 
 const modules = {};
+const options = {
+    renderContinuously: true,
+    scene: 'models/grassWall.json'
+};
 let animationFrameId = null;
 
 initContentHmr();
 init();
 
 function init() {
-    const canvas = document.querySelector('canvas');
-
-    canvas.addEventListener('click', handleClick);
     window.addEventListener('hashchange', handleHashChange);
     window.addEventListener('resize', handleResize);
 
-    restart();
+    const canvas = document.querySelector('canvas');
+    canvas.addEventListener('click', handleClick);
+
+    const renderContinuouslyToggle = document.getElementById('render-continuously');
+    renderContinuouslyToggle.checked = options.renderContinuously;
+    renderContinuouslyToggle.addEventListener('change', e => {
+        options.renderContinuously = e.target.checked;
+        restart();
+    });
+
+    const sceneSelection = document.getElementById('scene-selection');
+    sceneSelection.addEventListener('change', e => {
+        options.scene = e.target.value;
+        restart();
+    });
+
+    restart(renderContinuouslyToggle.checked);
 }
 
 function restart() {
@@ -33,8 +50,8 @@ function restart() {
     const canvas = document.querySelector('canvas');
 
     const urlParams = Object.assign({
-        scene: 'models/grassWall.json',
-        single: false
+        scene: options.scene,
+        single: !options.renderContinuously
     }, getUrlParameters(window.location));
     const scene = loadScene(canvas, urlParams);
 
@@ -72,8 +89,11 @@ function initContentHmr() {
     }
 }
 
-function handleClick() {
+function handleClick(e) {
     restart();
+
+    e.preventDefault();
+    return false;
 }
 
 function handleHashChange() {

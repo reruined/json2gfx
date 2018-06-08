@@ -11,3 +11,17 @@ canvas {
     width: 100%;
     background: purple;
 }
+
+#options {
+    position: absolute;
+    right: 0;
+    top: 0;
+    background: lightgray;
+    padding: 15px;
+    border-radius: 15px;
+    margin: 5px;
+}
+
+select {
+    display: block;
+}
